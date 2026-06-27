@@ -61,28 +61,13 @@
     border-radius: 14px;
     overflow: hidden;
     flex-shrink: 0;
-    background:
-      radial-gradient(at 22% 22%, var(--c2) 0%, transparent 55%),
-      radial-gradient(at 80% 80%, var(--c1) 0%, transparent 60%),
-      var(--c1);
-  }
-  .tok-cover::before {
-    content: '';
-    position: absolute; inset: 0;
-    background-image: repeating-radial-gradient(circle at 50% 50%, transparent 0 7px, rgba(255,255,255,0.07) 7px 8px);
-    opacity: 0.7;
-  }
-  .tok-cover .tok-mono {
-    position: absolute; bottom: 5px; right: 7px;
-    font-family: 'Space Grotesk', sans-serif; font-weight: 700;
-    color: rgba(255,255,255,0.5);
+    background-color: var(--sheet);
+    background-size: cover;
+    background-position: center;
   }
   .tok-cover--hero { width: 92px; height: 92px; }
-  .tok-cover--hero .tok-mono { font-size: 13px; }
   .tok-cover--mini { width: 28px; height: 28px; border-radius: 8px; }
-  .tok-cover--mini .tok-mono { font-size: 9px; bottom: 3px; right: 4px; }
   .tok-cover--card { width: 42px; height: 42px; border-radius: 10px; }
-  .tok-cover--card .tok-mono { font-size: 10px; }
 
   .tok-hero-meta { flex: 1; min-width: 0; padding-top: 1px; }
   .tok-eq { display:flex; gap:3px; align-items:flex-end; height:13px; margin-bottom:5px; }
@@ -229,16 +214,17 @@
     <button class="tok-playbtn" id="tokPlayBtn" aria-label="Pusti / pauziraj">▶</button>
 
     <div class="tok-hero">
-      <div class="tok-cover tok-cover--hero" id="tokHeroCover"><span class="tok-mono">B</span></div>
+      <div class="tok-cover tok-cover--hero" id="tokHeroCover"></div>
       <div class="tok-hero-meta">
         <div class="tok-eq paused" id="tokEq"><span></span><span></span><span></span></div>
-        <div class="tok-now-title" id="tokNowTitle">Kerala</div>
-        <div class="tok-now-artist" id="tokNowArtist">Bonobo</div>
-        <div class="tok-now-stats" id="tokNowStats">135 BPM · ENERGIJA 6/10</div>
+        <div class="tok-now-title" id="tokNowTitle">Učitavanje playliste…</div>
+        <div class="tok-now-artist" id="tokNowArtist"></div>
+        <div class="tok-now-stats" id="tokNowStats"></div>
         <div class="tok-progress-track"><div class="tok-progress-fill" id="tokProgress"></div></div>
-        <div class="tok-progress-caption" id="tokRemain">pritisni ▶ za simulaciju</div>
+        <div class="tok-progress-caption" id="tokRemain"></div>
       </div>
     </div>
+    <div id="ytPlayer" style="position:absolute; width:1px; height:1px; opacity:0.01; pointer-events:none; overflow:hidden;"></div>
 
     <div class="tok-trail" id="tokTrail"></div>
 
@@ -253,8 +239,8 @@
     <div class="tok-sheet" id="tokSheet">
       <div class="tok-sheet-handle" id="tokHandle"></div>
       <div class="tok-recap">
-        <div class="tok-cover tok-cover--mini" id="tokRecapCover"><span class="tok-mono">B</span></div>
-        <div class="tok-recap-text">trenutno: <strong id="tokRecapTitle">Kerala</strong> — <span id="tokRecapArtist">Bonobo</span></div>
+        <div class="tok-cover tok-cover--mini" id="tokRecapCover"></div>
+        <div class="tok-recap-text">trenutno: <strong id="tokRecapTitle"></strong> — <span id="tokRecapArtist"></span></div>
       </div>
 
       <div class="tok-ring-row">
@@ -275,7 +261,7 @@
 
       <div class="tok-options" id="tokOptions">
         <button class="tok-card" data-dir="speed">
-          <div class="tok-cover tok-cover--card"><span class="tok-mono">—</span></div>
+          <div class="tok-cover tok-cover--card"></div>
           <div class="tok-card-meta">
             <div class="tok-card-label">🏎️ UBRZAJ</div>
             <div class="tok-card-track">—</div>
@@ -284,7 +270,7 @@
           <div class="tok-card-delta">—</div>
         </button>
         <button class="tok-card" data-dir="stay">
-          <div class="tok-cover tok-cover--card"><span class="tok-mono">—</span></div>
+          <div class="tok-cover tok-cover--card"></div>
           <div class="tok-card-meta">
             <div class="tok-card-label">🏄 ZADRŽI</div>
             <div class="tok-card-track">—</div>
@@ -293,7 +279,7 @@
           <div class="tok-card-delta">—</div>
         </button>
         <button class="tok-card" data-dir="slow">
-          <div class="tok-cover tok-cover--card"><span class="tok-mono">—</span></div>
+          <div class="tok-cover tok-cover--card"></div>
           <div class="tok-card-meta">
             <div class="tok-card-label">🛑 SPUSTI</div>
             <div class="tok-card-track">—</div>
@@ -310,31 +296,17 @@
 
 <script>
 (function(){
-  const TOTAL_MS = 20000;     // demo "trajanje pjesme"
-  const LAST_CALL_MS = 6000;  // zadnjih ~6s: pill se sam otvori kao podsjetnik (ako ga korisnik već nije sam otvorio/zatvorio)
+  const YT_API_KEY = 'YOUR_API_KEY_HERE';
+  const PLAYLIST_ID = 'PL9qqRdUh4PoNhlUS4g69SQTxteQKHVAe-';
+  const LAST_CALL_S = 6; // zadnjih ~6s: pill se sam otvori kao podsjetnik (ako ga korisnik već nije sam otvorio/zatvorio)
 
-  const catalog = [
-    { id:'kerala', artist:'Bonobo', title:'Kerala', bpm:135, energy:6, tags:['organic','breaks','downtempo'], color:'#3F7D6E', color2:'#8FD9C4' },
-    { id:'rosewood', artist:'Bonobo', title:'Rosewood', bpm:122, energy:5, tags:['organic','soulful','deep-house'], color:'#6E5B96', color2:'#C9B6E8' },
-    { id:'down4', artist:'Kingdom', title:'Down 4 Whatever', bpm:128, energy:7, tags:['club','bass','rnb'], color:'#9C4A6B', color2:'#E8A8C2' },
-    { id:'different', artist:"Barry Can't Swim", title:'Different', bpm:160, energy:9, tags:['club','breaks','euphoric'], color:'#C2562F', color2:'#FFB088' },
-    { id:'always', artist:"Barry Can't Swim", title:'Always Get Through To You', bpm:118, energy:5, tags:['organic','soulful','downtempo'], color:'#A6763C', color2:'#F0CB8C' },
-    { id:'sexy', artist:'Kiki Gyan', title:'Sexy Dancer', bpm:118, energy:7, tags:['afro','disco','groove'], color:'#B5862E', color2:'#F2D27A' },
-    { id:'mahal', artist:'Glass Beams', title:'Mahal', bpm:98, energy:4, tags:['organic','instrumental','meditative'], color:'#4C6A86', color2:'#9FC4DE' },
-    { id:'tau', artist:'Glass Beams', title:'Tau', bpm:104, energy:4, tags:['organic','instrumental','meditative'], color:'#43607A', color2:'#93B8D6' },
-    { id:'yesterday', artist:'Loyle Carner', title:'Yesterday', bpm:90, energy:3, tags:['jazzy-hiphop','mellow','vocal'], color:'#5A4E63', color2:'#B6A6C9' },
-    { id:'eteri', artist:'Rampa', title:'Eteri', bpm:122, energy:6, tags:['deep-house','warm','groove'], color:'#7A5A45', color2:'#D2AE8E' },
-    { id:'maria', artist:'Khruangbin', title:'Maria También', bpm:100, energy:4, tags:['organic','instrumental','dreamy'], color:'#3E6B6B', color2:'#8FCBCB' },
-    { id:'easy', artist:'Joy Anonymous', title:'Easy', bpm:124, energy:7, tags:['club','uplifting','vocal'], color:'#B5552C', color2:'#FFAE82' },
-    { id:'sliders', artist:'Folamour', title:'Sliders', bpm:122, energy:6, tags:['deep-house','warm','groove'], color:'#8C5A3A', color2:'#DDA978' },
-    { id:'sunflower', artist:'Mall Grab', title:'Sunflower', bpm:128, energy:7, tags:['club','breaks','energetic'], color:'#A6452F', color2:'#FFA985' }
-  ];
-
-  let current = catalog[0];
+  let tracks = [];
+  let currentIndex = 0;
   let history = [];
   let currentCandidates = null;
+  let player = null;
 
-  const state = { playing:false, elapsed:0, sheetOpen:false, armedDir:'stay', autoOpenedThisSong:false, userClosedThisSong:false };
+  const state = { playing:false, sheetOpen:false, armedDir:'stay', autoOpenedThisSong:false, userClosedThisSong:false };
 
   const els = {
     playBtn: document.getElementById('tokPlayBtn'),
@@ -363,59 +335,90 @@
   const accent = { speed:'var(--ember)', stay:'var(--dusk)', slow:'var(--tide)' };
   const dirLabel = { speed:'🏎️ UBRZAJ', stay:'🏄 ZADRŽI', slow:'🛑 SPUSTI' };
 
+  function ytThumb(videoId){
+    return 'https://i.ytimg.com/vi/' + videoId + '/hqdefault.jpg';
+  }
+
+  function parseTitleArtist(snippetTitle, channelTitle){
+    let artist = (channelTitle || '').replace(/\s*-\s*Topic$/i, '').trim();
+    let title = snippetTitle;
+    const m = snippetTitle.match(/^(.*?)\s*[-–]\s*(.*)$/);
+    if (m && m[1] && m[2]) { artist = m[1].trim(); title = m[2].trim(); }
+    return { title, artist: artist || 'Nepoznat izvođač' };
+  }
+
+  function parseISODuration(iso){
+    const m = (iso || '').match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+    if (!m) return 0;
+    return (parseInt(m[1] || 0, 10) * 3600) + (parseInt(m[2] || 0, 10) * 60) + parseInt(m[3] || 0, 10);
+  }
+
+  function fmtTime(s){
+    s = Math.max(0, Math.round(s || 0));
+    const m = Math.floor(s / 60), sec = s % 60;
+    return m + ':' + (sec < 10 ? '0' : '') + sec;
+  }
+
+  async function fetchPlaylist(){
+    let items = [];
+    let pageToken = '';
+    do {
+      const url = 'https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=' +
+        PLAYLIST_ID + '&key=' + YT_API_KEY + (pageToken ? '&pageToken=' + pageToken : '');
+      const res = await fetch(url);
+      const data = await res.json();
+      if (!res.ok) throw new Error((data.error && data.error.message) || 'YouTube API greška');
+      items = items.concat(data.items || []);
+      pageToken = data.nextPageToken || '';
+    } while (pageToken && items.length < 200);
+
+    tracks = items
+      .filter(it => it.snippet && it.snippet.resourceId && it.snippet.resourceId.videoId &&
+        it.snippet.title !== 'Deleted video' && it.snippet.title !== 'Private video')
+      .map(it => {
+        const vid = it.snippet.resourceId.videoId;
+        const parsed = parseTitleArtist(it.snippet.title, it.snippet.videoOwnerChannelTitle);
+        return { id: vid, title: parsed.title, artist: parsed.artist, thumb: ytThumb(vid), durationSec: 0 };
+      });
+
+    for (let i = 0; i < tracks.length; i += 50) {
+      const batch = tracks.slice(i, i + 50);
+      const ids = batch.map(t => t.id).join(',');
+      const url = 'https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=' + ids + '&key=' + YT_API_KEY;
+      const res = await fetch(url);
+      const data = await res.json();
+      (data.items || []).forEach(v => {
+        const t = tracks.find(x => x.id === v.id);
+        if (t) t.durationSec = parseISODuration(v.contentDetails.duration);
+      });
+    }
+  }
+
   function coverHTML(t, sizeClass, idAttr){
     return '<div class="tok-cover ' + sizeClass + '"' + (idAttr ? ' id="' + idAttr + '"' : '') +
-           ' style="--c1:' + t.color + ';--c2:' + t.color2 + '">' +
-           '<span class="tok-mono">' + t.title.charAt(0).toUpperCase() + '</span></div>';
+           ' style="background-image:url(\'' + t.thumb + '\')"></div>';
   }
 
-  function scoreFor(dir, t, cur){
-    const bpmDelta = t.bpm - cur.bpm;
-    const energyDelta = t.energy - cur.energy;
-    const overlap = t.tags.filter(tag => cur.tags.includes(tag)).length;
-    if (dir === 'speed') {
-      if (bpmDelta < 2) return -999;
-      return overlap*3 + Math.max(0, 12 - Math.abs(bpmDelta - 18)) + Math.max(0, energyDelta)*1.5;
+  function pickCandidates(){
+    const n = tracks.length;
+    const stayIdx = (currentIndex + 1) % n;
+    const used = new Set(history.slice(-3).map(t => t.id).concat([tracks[currentIndex].id, tracks[stayIdx].id]));
+    function pickRandom(exclude){
+      const opts = tracks.filter(t => !used.has(t.id) && !exclude.has(t.id));
+      const pool = opts.length ? opts : tracks.filter(t => t.id !== tracks[currentIndex].id);
+      return pool[Math.floor(Math.random() * pool.length)];
     }
-    if (dir === 'stay') {
-      return overlap*4 + Math.max(0, 10 - Math.abs(bpmDelta)) + Math.max(0, 3 - Math.abs(energyDelta))*2;
-    }
-    if (dir === 'slow') {
-      if (bpmDelta > -2) return -999;
-      return overlap*3 + Math.max(0, 12 - Math.abs(bpmDelta + 18)) + Math.max(0, -energyDelta)*1.5;
-    }
-  }
-
-  function pickCandidates(cur, hist){
-    const recent = new Set(hist.slice(-3).map(t => t.id).concat([cur.id]));
-    const pool = catalog.filter(t => !recent.has(t.id));
-    function best(dir){
-      let scored = pool.map(t => ({ t, s: scoreFor(dir, t, cur) })).filter(c => c.s > -900);
-      if (scored.length === 0) {
-        scored = pool.map(t => ({
-          t,
-          s: dir === 'speed' ? (t.bpm - cur.bpm) : dir === 'slow' ? (cur.bpm - t.bpm) : -Math.abs(t.bpm - cur.bpm)
-        }));
-      }
-      scored.sort((a,b) => b.s - a.s);
-      return scored[0].t;
-    }
-    return { speed: best('speed'), stay: best('stay'), slow: best('slow') };
-  }
-
-  function fmtDelta(t){
-    const d = t.bpm - current.bpm;
-    if (d === 0) return '≈ BPM';
-    return (d > 0 ? '+' : '') + d + ' BPM';
+    const speedT = pickRandom(new Set());
+    const slowT = pickRandom(new Set([speedT.id]));
+    return { speed: speedT, stay: tracks[stayIdx], slow: slowT };
   }
 
   function renderNowPlaying(t){
-    const wrap = els.heroCover.parentNode;
     els.heroCover.outerHTML = coverHTML(t, 'tok-cover--hero', 'tokHeroCover');
     els.heroCover = document.getElementById('tokHeroCover');
     els.title.textContent = t.title;
     els.artist.textContent = t.artist;
-    els.stats.textContent = t.bpm + ' BPM · ENERGIJA ' + t.energy + '/10';
+    els.stats.textContent = fmtTime(t.durationSec) + ' · YouTube Music';
   }
 
   function renderOptionsBase(cands){
@@ -426,7 +429,7 @@
       coverSlot.outerHTML = coverHTML(t, 'tok-cover--card');
       card.querySelector('.tok-card-track').textContent = t.title;
       card.querySelector('.tok-card-artist').textContent = t.artist;
-      card.querySelector('.tok-card-delta').textContent = fmtDelta(t);
+      card.querySelector('.tok-card-delta').textContent = fmtTime(t.durationSec);
     });
     refreshChosenHighlight();
   }
@@ -446,21 +449,6 @@
     els.pillSub.textContent = t ? ('→ ' + t.title + ' · ' + t.artist) : '→ —';
   }
 
-  function updateProgressUI(){
-    const pct = Math.min(100, (state.elapsed / TOTAL_MS) * 100);
-    els.progress.style.width = pct + '%';
-    els.progress.style.background = accent[state.armedDir].replace('var(','').replace(')','');
-    els.progress.style.background = 'var(--' + (state.armedDir === 'speed' ? 'ember' : state.armedDir === 'slow' ? 'tide' : 'dusk') + ')';
-    const remainSec = Math.max(0, Math.ceil((TOTAL_MS - state.elapsed) / 1000));
-    els.remain.textContent = state.playing ? ('ostalo ' + remainSec + 's u pjesmi') : 'pauzirano';
-    if (state.sheetOpen) {
-      els.secs.textContent = remainSec;
-      const offset = CIRC * (state.elapsed / TOTAL_MS);
-      els.ring.style.strokeDashoffset = Math.max(0, offset);
-      els.ring.style.stroke = accent[state.armedDir];
-    }
-  }
-
   function pushTrailDot(dir){
     const dot = document.createElement('div');
     dot.className = 'tok-dot';
@@ -468,17 +456,25 @@
     els.trail.appendChild(dot);
   }
 
-  function startNewSong(){
-    currentCandidates = pickCandidates(current, history);
+  function loadCurrentTrack(autoplay){
+    const t = tracks[currentIndex];
+    renderNowPlaying(t);
+    els.recapCover.outerHTML = coverHTML(t, 'tok-cover--mini', 'tokRecapCover');
+    els.recapCover = document.getElementById('tokRecapCover');
+    els.recapTitle.textContent = t.title;
+    els.recapArtist.textContent = t.artist;
+
+    currentCandidates = pickCandidates();
     state.armedDir = 'stay';
     state.autoOpenedThisSong = false;
     state.userClosedThisSong = false;
     renderOptionsBase(currentCandidates);
     renderPill();
-    els.recapCover.outerHTML = coverHTML(current, 'tok-cover--mini', 'tokRecapCover');
-    els.recapCover = document.getElementById('tokRecapCover');
-    els.recapTitle.textContent = current.title;
-    els.recapArtist.textContent = current.artist;
+
+    if (player && typeof player.loadVideoById === 'function') {
+      if (autoplay) player.loadVideoById(t.id);
+      else player.cueVideoById(t.id);
+    }
   }
 
   function openSheet(){
@@ -507,14 +503,12 @@
   }
 
   function commitEndOfSong(){
-    const t = currentCandidates[state.armedDir];
-    history.push(current);
-    current = t;
+    const picked = currentCandidates[state.armedDir];
+    history.push(tracks[currentIndex]);
+    currentIndex = tracks.findIndex(t => t.id === picked.id);
     pushTrailDot(state.armedDir);
-    renderNowPlaying(current);
-    state.elapsed = 0;
     closeSheet(false);
-    startNewSong();
+    loadCurrentTrack(true);
   }
 
   els.options.addEventListener('click', (e) => {
@@ -531,31 +525,77 @@
   els.handle.addEventListener('click', () => closeSheet(true));
 
   els.playBtn.addEventListener('click', () => {
-    state.playing = !state.playing;
-    els.playBtn.textContent = state.playing ? '❙❙' : '▶';
-    els.eq.classList.toggle('paused', !state.playing);
-    updateProgressUI();
+    if (!player || typeof player.getPlayerState !== 'function') return;
+    if (player.getPlayerState() === YT.PlayerState.PLAYING) player.pauseVideo();
+    else player.playVideo();
   });
 
+  function onPlayerStateChange(e){
+    if (e.data === YT.PlayerState.PLAYING) {
+      state.playing = true;
+      els.playBtn.textContent = '❙❙';
+      els.eq.classList.remove('paused');
+    } else if (e.data === YT.PlayerState.PAUSED) {
+      state.playing = false;
+      els.playBtn.textContent = '▶';
+      els.eq.classList.add('paused');
+    } else if (e.data === YT.PlayerState.ENDED) {
+      commitEndOfSong();
+    }
+  }
+
+  window.onYouTubeIframeAPIReady = function(){
+    player = new YT.Player('ytPlayer', {
+      height: '1', width: '1',
+      videoId: tracks[currentIndex].id,
+      playerVars: { autoplay:0, controls:0, disablekb:1, modestbranding:1, rel:0, playsinline:1 },
+      events: { onStateChange: onPlayerStateChange }
+    });
+  };
+
   setInterval(() => {
-    if (!state.playing) return;
+    if (!player || typeof player.getCurrentTime !== 'function' || !state.playing) return;
 
-    state.elapsed += 250;
-    updateProgressUI();
+    const cur = player.getCurrentTime();
+    const dur = player.getDuration() || tracks[currentIndex].durationSec || 0;
+    if (!dur) return;
 
-    if (!state.autoOpenedThisSong && !state.userClosedThisSong && !state.sheetOpen && state.elapsed >= TOTAL_MS - LAST_CALL_MS) {
+    els.progress.style.width = Math.min(100, (cur / dur) * 100) + '%';
+    els.progress.style.background = 'var(--' + (state.armedDir === 'speed' ? 'ember' : state.armedDir === 'slow' ? 'tide' : 'dusk') + ')';
+    const remainSec = Math.max(0, Math.ceil(dur - cur));
+    els.remain.textContent = 'ostalo ' + remainSec + 's u pjesmi';
+
+    if (state.sheetOpen) {
+      els.secs.textContent = remainSec;
+      els.ring.style.strokeDashoffset = Math.max(0, CIRC * (cur / dur));
+      els.ring.style.stroke = accent[state.armedDir];
+    }
+
+    if (!state.autoOpenedThisSong && !state.userClosedThisSong && !state.sheetOpen && remainSec <= LAST_CALL_S) {
       state.autoOpenedThisSong = true;
       openSheet();
     }
-
-    if (state.elapsed >= TOTAL_MS) {
-      commitEndOfSong();
-    }
   }, 250);
 
-  renderNowPlaying(current);
-  startNewSong();
-  updateProgressUI();
+  (async function bootstrap(){
+    try {
+      await fetchPlaylist();
+    } catch (err) {
+      els.title.textContent = 'Greška kod dohvata playliste';
+      els.artist.textContent = String((err && err.message) || err);
+      return;
+    }
+    if (!tracks.length) {
+      els.title.textContent = 'Playlist je prazna ili nije javno dostupna';
+      return;
+    }
+    els.remain.textContent = 'pritisni ▶ za reprodukciju';
+    loadCurrentTrack(false);
+
+    const tag = document.createElement('script');
+    tag.src = 'https://www.youtube.com/iframe_api';
+    document.head.appendChild(tag);
+  })();
 })();
 </script>
 </body>
