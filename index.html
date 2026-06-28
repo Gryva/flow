@@ -162,7 +162,14 @@
   }
   .tok-sheet.open { transform: translateY(0); }
   .tok-sheet-handle { width:36px; height:4px; border-radius:3px; background:rgba(255,255,255,0.2); margin:0 auto 12px; cursor:pointer; flex-shrink:0; }
-  .tok-sheet-title { font-family:'Fraunces',serif; font-weight:900; font-size:19px; margin-bottom:12px; flex-shrink:0; }
+  .tok-sheet-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; flex-shrink:0; }
+  .tok-sheet-title { font-family:'Fraunces',serif; font-weight:900; font-size:19px; }
+  .tok-order-toggle { display:flex; background:var(--sheet); border-radius:999px; padding:3px; gap:2px; }
+  .tok-order-btn {
+    border:none; cursor:pointer; font-family:inherit; font-weight:700; font-size:11.5px;
+    color:var(--muted); background:transparent; border-radius:999px; padding:6px 11px;
+  }
+  .tok-order-btn.active { background:var(--dusk); color:var(--ink); }
 
   .tok-queue { display:flex; flex-direction:column; gap:8px; overflow-y:auto; flex:1; min-height:0; }
   .tok-queue-row {
@@ -293,7 +300,13 @@
   <div class="tok-backdrop" id="tokBackdrop"></div>
   <div class="tok-sheet" id="tokSheet">
     <div class="tok-sheet-handle" id="tokHandle"></div>
-    <div class="tok-sheet-title">Queue</div>
+    <div class="tok-sheet-header">
+      <div class="tok-sheet-title">Queue</div>
+      <div class="tok-order-toggle">
+        <button class="tok-order-btn" data-order="sequential" id="tokOrderSeq">U redu</button>
+        <button class="tok-order-btn" data-order="shuffle" id="tokOrderShuffle">Nasumično</button>
+      </div>
+    </div>
     <div class="tok-queue" id="tokQueue"></div>
   </div>
 
@@ -323,7 +336,7 @@
   let currentCandidates = null;
   let history = [];
 
-  const state = { playing:false, queueOpen:false, armedDir:'flow' };
+  const state = { playing:false, queueOpen:false, armedDir:'flow', order: localStorage.getItem('tok_order') || 'sequential' };
 
   const els = {
     playBtn: document.getElementById('tokPlayBtn'),
@@ -347,7 +360,9 @@
     playlistInput: document.getElementById('tokPlaylistInput'),
     playlistError: document.getElementById('tokPlaylistError'),
     playlistCancel: document.getElementById('tokPlaylistCancel'),
-    playlistSave: document.getElementById('tokPlaylistSave')
+    playlistSave: document.getElementById('tokPlaylistSave'),
+    orderSeq: document.getElementById('tokOrderSeq'),
+    orderShuffle: document.getElementById('tokOrderShuffle')
   };
 
   const WAVE_BARS = 40;
@@ -503,7 +518,15 @@
 
   function pickCandidates(){
     const n = tracks.length;
-    const flowIdx = (currentIndex + 1) % n;
+    let flowIdx;
+    if (state.order === 'shuffle') {
+      const recent = new Set(history.slice(-3).map(t => t.id).concat([tracks[currentIndex].id]));
+      const opts = tracks.map((t, idx) => idx).filter(idx => !recent.has(tracks[idx].id));
+      const pool = opts.length ? opts : tracks.map((t, idx) => idx).filter(idx => idx !== currentIndex);
+      flowIdx = pool[Math.floor(Math.random() * pool.length)];
+    } else {
+      flowIdx = (currentIndex + 1) % n;
+    }
     const used = new Set(history.slice(-3).map(t => t.id).concat([tracks[currentIndex].id, tracks[flowIdx].id]));
     function pickRandom(exclude){
       const opts = tracks
@@ -542,6 +565,17 @@
     state.armedDir = card.getAttribute('data-dir');
     els.dirs.querySelectorAll('.tok-dir').forEach(c => c.classList.toggle('chosen', c === card));
   });
+
+  function setOrder(order){
+    state.order = order;
+    localStorage.setItem('tok_order', order);
+    els.orderSeq.classList.toggle('active', order === 'sequential');
+    els.orderShuffle.classList.toggle('active', order === 'shuffle');
+    if (tracks.length) renderDirs();
+  }
+  els.orderSeq.addEventListener('click', () => setOrder('sequential'));
+  els.orderShuffle.addEventListener('click', () => setOrder('shuffle'));
+  setOrder(state.order);
 
   function commitEndOfSong(){
     const picked = currentCandidates[state.armedDir];
@@ -647,6 +681,7 @@
 
   function loadCurrentTrack(autoplay){
     const t = tracks[currentIndex];
+    localStorage.setItem('tok_last_track_id', t.id);
     els.vinylImg.src = t.thumb;
     applyVinylColor(t);
     els.title.textContent = t.title;
@@ -741,7 +776,9 @@
       return;
     }
     buildWave();
-    currentIndex = Math.floor(Math.random() * tracks.length);
+    const lastId = localStorage.getItem('tok_last_track_id');
+    const lastIdx = lastId ? tracks.findIndex(t => t.id === lastId) : -1;
+    currentIndex = lastIdx !== -1 ? lastIdx : Math.floor(Math.random() * tracks.length);
     els.status.textContent = 'pritisni ▶ za reprodukciju';
     loadCurrentTrack(false);
 
