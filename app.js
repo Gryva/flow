@@ -416,7 +416,15 @@
     loadCurrentTrack(autoplay);
   }
 
+  function tapFeedback(btn){
+    if (navigator.vibrate) navigator.vibrate(12);
+    btn.classList.remove('tok-tap');
+    void btn.offsetWidth;
+    btn.classList.add('tok-tap');
+  }
+
   els.prevBtn.addEventListener('click', () => {
+    tapFeedback(els.prevBtn);
     if (history.length) {
       const prevTrack = history.pop();
       currentIndex = tracks.findIndex(t => t.id === prevTrack.id);
@@ -426,9 +434,11 @@
     }
   });
   els.nextBtn.addEventListener('click', () => {
+    tapFeedback(els.nextBtn);
     commitEndOfSong();
   });
   els.playBtn.addEventListener('click', () => {
+    tapFeedback(els.playBtn);
     if (!player || typeof player.getPlayerState !== 'function') return;
     if (player.getPlayerState() === YT.PlayerState.PLAYING) player.pauseVideo();
     else player.playVideo();

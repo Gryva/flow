@@ -120,10 +120,16 @@ html, body { height:100%; margin:0; }
   border:none; cursor:pointer; color:var(--bg); font-family:inherit;
   display:flex; align-items:center; justify-content:center; background:transparent;
 }
-.tok-transport .tok-skipbtn { width:38px; height:38px; border-radius:50%; font-size:15px; color: var(--dusk); background:transparent; }
-.tok-skipbtn:active { transform:scale(0.92); }
-.tok-transport .tok-playbtn { width:50px; height:50px; border-radius:50%; background:transparent; color: var(--dusk); font-size:18px; }
-.tok-playbtn:active { transform:scale(0.94); }
+.tok-transport .tok-skipbtn { width:38px; height:38px; border-radius:50%; font-size:15px; color: var(--dusk); background:transparent; transition: transform 0.12s ease, background 0.12s ease; }
+.tok-skipbtn:active { transform:scale(0.88); background:rgba(255,90,60,0.14); }
+.tok-transport .tok-playbtn { width:50px; height:50px; border-radius:50%; background:transparent; color: var(--dusk); font-size:18px; transition: transform 0.12s ease, background 0.12s ease; }
+.tok-playbtn:active { transform:scale(0.9); background:rgba(255,90,60,0.14); }
+
+.tok-skipbtn.tok-tap, .tok-playbtn.tok-tap { animation: tok-tap-pulse 0.28s ease-out; }
+@keyframes tok-tap-pulse {
+  0% { transform:scale(0.86); background:rgba(255,90,60,0.22); }
+  100% { transform:scale(1); background:transparent; }
+}
 
 /* ---------- queue sheet ---------- */
 .tok-backdrop {
