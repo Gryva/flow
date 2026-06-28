@@ -443,10 +443,10 @@
   });
   setOrder(state.order);
 
-  function commitEndOfSong(){
+  function commitEndOfSong(allowCrossfade){
     const picked = currentCandidates[state.armedDir];
     history.push(tracks[currentIndex]);
-    switchTrack(picked.idx, true);
+    switchTrack(picked.idx, true, allowCrossfade !== false);
   }
 
   function updateMediaSession(t){
@@ -600,15 +600,15 @@
     }, stepMs);
   }
 
-  function switchTrack(idx, autoplay){
-    const canCrossfade = state.crossfade && autoplay && state.playing && playerBReady &&
-      player && inactivePlayer && !crossfadeActive;
+  function switchTrack(idx, autoplay, allowCrossfade){
+    const canCrossfade = allowCrossfade !== false && state.crossfade && autoplay && state.playing &&
+      playerBReady && player && inactivePlayer && !crossfadeActive;
     if (canCrossfade) crossfadeToTrack(idx);
     else { currentIndex = idx; loadCurrentTrack(autoplay); }
   }
 
   function jumpToTrack(idx, autoplay){
-    switchTrack(idx, autoplay);
+    switchTrack(idx, autoplay, false);
   }
 
   function tapFeedback(btn){
@@ -622,14 +622,14 @@
     tapFeedback(els.prevBtn);
     if (history.length) {
       const prevTrack = history.pop();
-      switchTrack(tracks.findIndex(t => t.id === prevTrack.id), true);
+      switchTrack(tracks.findIndex(t => t.id === prevTrack.id), true, false);
     } else {
-      switchTrack((currentIndex - 1 + tracks.length) % tracks.length, true);
+      switchTrack((currentIndex - 1 + tracks.length) % tracks.length, true, false);
     }
   });
   els.nextBtn.addEventListener('click', () => {
     tapFeedback(els.nextBtn);
-    commitEndOfSong();
+    commitEndOfSong(false);
   });
   els.playBtn.addEventListener('click', () => {
     tapFeedback(els.playBtn);
