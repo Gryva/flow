@@ -208,12 +208,17 @@
     if (!fresh.length) return;
 
     const currentTrack = tracks[currentIndex];
-    tracks = fresh;
+    const newIdx = currentTrack ? fresh.findIndex(t => t.id === currentTrack.id) : -1;
 
-    if (currentTrack) {
-      const newIdx = tracks.findIndex(t => t.id === currentTrack.id);
-      if (newIdx !== -1) currentIndex = newIdx;
-    }
+    // If the track currently loaded in the player can't be found in the
+    // freshly fetched list (removed/reordered out, or a transient API
+    // glitch), bail out rather than swap the array — otherwise currentIndex
+    // would silently end up pointing at a different song than what's
+    // actually playing.
+    if (currentTrack && newIdx === -1) return;
+
+    tracks = fresh;
+    if (newIdx !== -1) currentIndex = newIdx;
 
     renderQueue();
   }
