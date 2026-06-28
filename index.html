@@ -182,6 +182,34 @@
 
   .tok-status { text-align:center; color:var(--muted); font-size:13px; margin-top:8px; }
 
+  /* ---------- playlist modal ---------- */
+  .tok-modal-backdrop {
+    position:fixed; inset:0; background:rgba(6,4,12,0.6);
+    opacity:0; pointer-events:none; transition:opacity 0.25s ease; z-index:8;
+    display:flex; align-items:center; justify-content:center; padding:24px;
+  }
+  .tok-modal-backdrop.open { opacity:1; pointer-events:auto; }
+  .tok-modal {
+    background: var(--stage); border-radius:22px; padding:20px; width:100%; max-width:360px;
+    transform: scale(0.94); transition: transform 0.25s ease;
+  }
+  .tok-modal-backdrop.open .tok-modal { transform: scale(1); }
+  .tok-modal-title { font-family:'Fraunces',serif; font-weight:900; font-size:18px; margin-bottom:6px; }
+  .tok-modal-text { color:var(--muted); font-size:13px; margin-bottom:14px; line-height:1.4; }
+  .tok-modal-input {
+    width:100%; background:var(--sheet); border:1px solid rgba(255,255,255,0.1); border-radius:14px;
+    padding:11px 14px; color:var(--ink); font-family:inherit; font-size:14px; outline:none;
+  }
+  .tok-modal-input:focus { border-color:var(--dusk); }
+  .tok-modal-error { color:var(--dusk); font-size:12px; margin-top:8px; min-height:14px; }
+  .tok-modal-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:16px; }
+  .tok-modal-btn {
+    border:none; cursor:pointer; font-family:inherit; font-weight:700; font-size:14px;
+    border-radius:999px; padding:9px 18px; background:transparent; color:var(--muted);
+  }
+  .tok-modal-btn.primary { background:var(--dusk); color:var(--ink); }
+  .tok-modal-btn:active { transform:scale(0.96); }
+
   @media (prefers-reduced-motion: reduce) {
     .tok-vinyl-cover, .tok-sheet, .tok-backdrop { animation:none !important; transition:none !important; }
   }
@@ -268,6 +296,19 @@
     <div class="tok-sheet-title">Queue</div>
     <div class="tok-queue" id="tokQueue"></div>
   </div>
+
+  <div class="tok-modal-backdrop" id="tokPlaylistBackdrop">
+    <div class="tok-modal">
+      <div class="tok-modal-title">Promijeni playlistu</div>
+      <div class="tok-modal-text">Zalijepi YouTube Music playlist link ili ID.</div>
+      <input class="tok-modal-input" id="tokPlaylistInput" type="text" placeholder="https://music.youtube.com/playlist?list=...">
+      <div class="tok-modal-error" id="tokPlaylistError"></div>
+      <div class="tok-modal-actions">
+        <button class="tok-modal-btn" id="tokPlaylistCancel">Odustani</button>
+        <button class="tok-modal-btn primary" id="tokPlaylistSave">Spremi</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -301,7 +342,12 @@
     handle: document.getElementById('tokHandle'),
     queue: document.getElementById('tokQueue'),
     dirs: document.getElementById('tokDirs'),
-    changePlaylist: document.getElementById('tokChangePlaylist')
+    changePlaylist: document.getElementById('tokChangePlaylist'),
+    playlistBackdrop: document.getElementById('tokPlaylistBackdrop'),
+    playlistInput: document.getElementById('tokPlaylistInput'),
+    playlistError: document.getElementById('tokPlaylistError'),
+    playlistCancel: document.getElementById('tokPlaylistCancel'),
+    playlistSave: document.getElementById('tokPlaylistSave')
   };
 
   const WAVE_BARS = 40;
@@ -519,13 +565,32 @@
     return null;
   }
 
-  els.changePlaylist.addEventListener('click', () => {
-    const input = window.prompt('Zalijepi YouTube Music playlist link ili ID:', PLAYLIST_ID);
-    if (!input) return;
-    const id = extractPlaylistId(input.trim());
-    if (!id) { window.alert('Nisam prepoznao playlist ID.'); return; }
+  function openPlaylistModal(){
+    els.playlistInput.value = PLAYLIST_ID;
+    els.playlistError.textContent = '';
+    els.playlistBackdrop.classList.add('open');
+    els.playlistInput.focus();
+  }
+  function closePlaylistModal(){
+    els.playlistBackdrop.classList.remove('open');
+  }
+  function savePlaylist(){
+    const input = els.playlistInput.value.trim();
+    if (!input) { closePlaylistModal(); return; }
+    const id = extractPlaylistId(input);
+    if (!id) { els.playlistError.textContent = 'Nisam prepoznao playlist ID.'; return; }
     localStorage.setItem('tok_playlist_id', id);
     location.reload();
+  }
+
+  els.changePlaylist.addEventListener('click', openPlaylistModal);
+  els.playlistCancel.addEventListener('click', closePlaylistModal);
+  els.playlistBackdrop.addEventListener('click', (e) => {
+    if (e.target === els.playlistBackdrop) closePlaylistModal();
+  });
+  els.playlistSave.addEventListener('click', savePlaylist);
+  els.playlistInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') savePlaylist();
   });
 
   const colorCache = {};
