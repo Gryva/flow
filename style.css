@@ -104,15 +104,12 @@ html, body { height:100%; margin:0; }
 .tok-dir {
   border:none; cursor:pointer; text-align:left; font-family:inherit; color:var(--ink);
   background: var(--stage); border-radius:16px; padding:10px 14px; display:flex; align-items:center; gap:12px;
-  opacity:0.55; box-shadow:0 0 0 0 transparent;
-  transition: opacity 0.2s, background 0.45s ease-out, box-shadow 0.2s ease-out,
+  opacity:0.55;
+  transition: opacity 0.2s, background 0.45s ease-out,
     transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; touch-action:manipulation;
 }
-.tok-dir:active { transform:scale(0.96); transition: transform 0.08s ease-out, box-shadow 0.08s ease-out; }
-.tok-dir[data-dir="up"]:active { box-shadow:0 0 18px 2px rgba(255,90,60,0.55); }
-.tok-dir[data-dir="flow"]:active { box-shadow:0 0 18px 2px rgba(86,166,255,0.55); }
-.tok-dir[data-dir="down"]:active { box-shadow:0 0 18px 2px rgba(168,120,255,0.55); }
+.tok-dir:active { transform:scale(0.96); transition: transform 0.08s ease-out; }
 .tok-dir.chosen { opacity:1; background:var(--dusk); }
 .tok-dir-cover { width:40px; height:40px; border-radius:12px; flex-shrink:0; background-size:cover; background-position:center; background-color:var(--sheet); }
 .tok-dir-meta { flex:1; min-width:0; }
