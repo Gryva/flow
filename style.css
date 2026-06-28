@@ -121,6 +121,8 @@ html, body { height:100%; margin:0; }
 .tok-dir-icon { flex-shrink:0; color:var(--muted); display:flex; }
 .tok-dir-icon svg { width:19px; height:19px; }
 .tok-dir.chosen .tok-dir-icon { color:#fff; }
+.tok-dir.chosen .tok-dir-icon svg { fill:currentColor; stroke:none; }
+.tok-dir[data-dir="flow"].chosen .tok-dir-icon svg { fill:none; stroke:currentColor; stroke-width:2.6; }
 
 .tok-transport {
   display:flex; align-items:center; justify-content:center; gap:16px;
