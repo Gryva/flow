@@ -578,9 +578,12 @@
     updateMediaSession(t);
   }
 
+  let lastSwitchAt = 0;
+
   function loadCurrentTrack(autoplay){
     const t = tracks[currentIndex];
     updateNowPlayingUI(t);
+    lastSwitchAt = Date.now();
     if (player && typeof player.loadVideoById === 'function') {
       localStorage.setItem('tok_last_pos', '0');
       player.setVolume && player.setVolume(100);
@@ -596,6 +599,7 @@
     currentIndex = idx;
     updateNowPlayingUI(t);
     localStorage.setItem('tok_last_pos', '0');
+    lastSwitchAt = Date.now();
 
     incoming.setVolume(0);
     incoming.loadVideoById(t.id);
@@ -742,7 +746,8 @@
     updateWaveProgress(Math.min(100, (cur / dur) * 100));
     posSaveCounter++;
     if (posSaveCounter % 8 === 0) localStorage.setItem('tok_last_pos', String(cur));
-    if (state.crossfade && playerBReady && !crossfadeActive && (dur - cur) <= CROSSFADE_LEAD_SEC) {
+    if (state.crossfade && playerBReady && !crossfadeActive && (Date.now() - lastSwitchAt) > 1500 &&
+        cur > 0 && cur <= dur && (dur - cur) <= CROSSFADE_LEAD_SEC) {
       commitEndOfSong();
     }
   }, 250);
