@@ -20,14 +20,14 @@
   html, body { height:100%; margin:0; }
 
   .tok-app {
-    --bg: #0E0B1A;
-    --stage: #1B1430;
-    --sheet: #241B3F;
-    --ink: #F6F1FB;
-    --muted: #9C8FBE;
-    --ember: #FF4FA3;
-    --dusk: #8C6CFF;
-    --tide: #22D3EE;
+    --bg: #16100E;
+    --stage: #241914;
+    --sheet: #2E1F19;
+    --ink: #FBF1E7;
+    --muted: #C9A99A;
+    --ember: #FF5A3C;
+    --dusk: #E2401D;
+    --tide: #F0883E;
     --gold: #FFC857;
     font-family: 'Manrope', system-ui, sans-serif;
     background: var(--bg);
@@ -66,19 +66,23 @@
   .tok-vinyl-wrap { width: min(62vw, 270px); aspect-ratio: 1; flex-shrink: 0; }
   .tok-vinyl {
     position: relative; width:100%; height:100%; border-radius:50%;
-    background: repeating-radial-gradient(circle, #050310 0px, #050310 2px, #19112c 2px, #19112c 5px);
+    background: conic-gradient(from 0deg, #FF5A3C, #FFC857, #E2401D, #F0883E, #FF5A3C);
     box-shadow: 0 22px 50px rgba(0,0,0,0.55);
     animation: tok-spin 7s linear infinite;
     animation-play-state: paused;
   }
   .tok-vinyl.spinning { animation-play-state: running; }
+  .tok-vinyl::before {
+    content:''; position:absolute; inset:6%; border-radius:50%;
+    background: repeating-radial-gradient(circle, rgba(0,0,0,0.16) 0px, rgba(0,0,0,0.16) 1.5px, transparent 1.5px, transparent 5px);
+  }
   .tok-vinyl-cover {
-    position:absolute; inset:16%; border-radius:50%;
+    position:absolute; inset:30%; border-radius:50%;
     background-color: var(--stage); background-size:cover; background-position:center;
-    box-shadow: inset 0 0 0 3px rgba(255,255,255,0.08);
+    box-shadow: 0 0 0 6px var(--bg), inset 0 0 0 2px rgba(255,255,255,0.12);
   }
   .tok-vinyl-cover::after {
-    content:''; position:absolute; top:50%; left:50%; width:16px; height:16px;
+    content:''; position:absolute; top:50%; left:50%; width:14px; height:14px;
     background:var(--bg); border-radius:50%; transform:translate(-50%,-50%);
   }
   @keyframes tok-spin { to { transform: rotate(360deg); } }
@@ -87,18 +91,23 @@
   .tok-now-title { font-family:'Fraunces',serif; font-weight:700; font-size:21px; line-height:1.25; }
   .tok-now-artist { color:var(--muted); font-size:14px; margin-top:4px; }
 
-  .tok-progress-track { height:5px; background:rgba(255,255,255,0.1); border-radius:5px; overflow:hidden; margin-top:16px; width:100%; max-width:320px; }
-  .tok-progress-fill { height:100%; width:0%; background:var(--gold); border-radius:5px; transition: width 0.22s linear; }
+  /* ---------- soundwave progress ---------- */
+  .tok-wave { display:flex; align-items:center; gap:3px; margin-top:18px; width:100%; max-width:320px; height:28px; }
+  .tok-wave-bar { flex:1; min-width:2px; border-radius:3px; background:rgba(255,255,255,0.14); transition: background 0.2s; }
+  .tok-wave-bar.played { background: var(--gold); }
 
   /* ---------- transport ---------- */
-  .tok-transport { display:flex; align-items:center; justify-content:center; gap:22px; }
-  .tok-transport button {
-    border:none; cursor:pointer; color:var(--ink); font-family:inherit;
-    display:flex; align-items:center; justify-content:center;
+  .tok-transport {
+    display:flex; align-items:center; justify-content:center; gap:14px;
+    background: var(--ink); border-radius:999px; padding:10px 16px; margin-top:4px;
   }
-  .tok-skipbtn { width:46px; height:46px; border-radius:50%; background:var(--stage); font-size:17px; }
+  .tok-transport button {
+    border:none; cursor:pointer; color:var(--bg); font-family:inherit;
+    display:flex; align-items:center; justify-content:center; background:transparent;
+  }
+  .tok-skipbtn { width:40px; height:40px; border-radius:50%; font-size:16px; }
   .tok-skipbtn:active { transform:scale(0.92); }
-  .tok-playbtn { width:68px; height:68px; border-radius:50%; background:var(--gold); color:#241B3F; font-size:22px; }
+  .tok-playbtn { width:54px; height:54px; border-radius:50%; background:var(--dusk); color:var(--ink); font-size:19px; }
   .tok-playbtn:active { transform:scale(0.94); }
 
   .tok-queue-toggle {
@@ -174,7 +183,7 @@
       <div class="tok-status" id="tokStatus"></div>
     </div>
 
-    <div class="tok-progress-track"><div class="tok-progress-fill" id="tokProgress"></div></div>
+    <div class="tok-wave" id="tokWave"></div>
 
     <div class="tok-transport">
       <button class="tok-skipbtn" id="tokPrevBtn" aria-label="Prošla pjesma">⏮</button>
@@ -215,7 +224,7 @@
     title: document.getElementById('tokNowTitle'),
     artist: document.getElementById('tokNowArtist'),
     status: document.getElementById('tokStatus'),
-    progress: document.getElementById('tokProgress'),
+    wave: document.getElementById('tokWave'),
     ytLink: document.getElementById('tokYtLink'),
     queueToggle: document.getElementById('tokQueueToggle'),
     backdrop: document.getElementById('tokBackdrop'),
@@ -223,6 +232,23 @@
     handle: document.getElementById('tokHandle'),
     queue: document.getElementById('tokQueue')
   };
+
+  const WAVE_BARS = 40;
+  function buildWave(){
+    let html = '';
+    for (let i = 0; i < WAVE_BARS; i++) {
+      const h = 25 + Math.round(Math.sin(i * 1.3) * 20 + Math.sin(i * 0.4) * 30 + 30);
+      html += '<div class="tok-wave-bar" style="height:' + Math.max(15, Math.min(100, h)) + '%"></div>';
+    }
+    els.wave.innerHTML = html;
+  }
+  function updateWaveProgress(pct){
+    const bars = els.wave.children;
+    const cutoff = Math.round((pct / 100) * bars.length);
+    for (let i = 0; i < bars.length; i++) {
+      bars[i].classList.toggle('played', i < cutoff);
+    }
+  }
 
   function ytThumb(videoId){
     return 'https://i.ytimg.com/vi/' + videoId + '/hqdefault.jpg';
@@ -324,13 +350,23 @@
     });
   }
 
+  const isAndroid = /Android/i.test(navigator.userAgent);
+
+  function braveLink(videoId){
+    const target = 'music.youtube.com/watch?v=' + videoId;
+    if (!isAndroid) return 'https://' + target;
+    return 'intent://' + target +
+      '#Intent;scheme=https;package=com.brave.browser;S.browser_fallback_url=' +
+      encodeURIComponent('https://' + target) + ';end';
+  }
+
   function loadCurrentTrack(autoplay){
     const t = tracks[currentIndex];
     els.vinylCover.style.backgroundImage = "url('" + t.thumb + "')";
     els.title.textContent = t.title;
     els.artist.textContent = t.artist;
     els.status.textContent = '';
-    els.ytLink.href = 'https://www.youtube.com/watch?v=' + t.id;
+    els.ytLink.href = braveLink(t.id);
     renderQueue();
     updateMediaSession(t);
 
@@ -393,7 +429,7 @@
     const cur = player.getCurrentTime();
     const dur = player.getDuration() || tracks[currentIndex].durationSec || 0;
     if (!dur) return;
-    els.progress.style.width = Math.min(100, (cur / dur) * 100) + '%';
+    updateWaveProgress(Math.min(100, (cur / dur) * 100));
   }, 250);
 
   (async function bootstrap(){
@@ -408,6 +444,7 @@
       els.title.textContent = 'Playlist je prazna ili nije javno dostupna';
       return;
     }
+    buildWave();
     currentIndex = Math.floor(Math.random() * tracks.length);
     els.status.textContent = 'pritisni ▶ za reprodukciju';
     loadCurrentTrack(false);
