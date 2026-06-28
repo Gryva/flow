@@ -35,7 +35,11 @@
     playlistCancel: document.getElementById('tokPlaylistCancel'),
     playlistSave: document.getElementById('tokPlaylistSave'),
     orderToggle: document.getElementById('tokOrderToggle'),
-    orderIcon: document.getElementById('tokOrderIcon')
+    orderIcon: document.getElementById('tokOrderIcon'),
+    playlistInfo: document.getElementById('tokPlaylistInfo'),
+    playlistCover: document.getElementById('tokPlaylistCover'),
+    playlistName: document.getElementById('tokPlaylistName'),
+    playlistSub: document.getElementById('tokPlaylistSub')
   };
 
   const WAVE_BARS = 40;
@@ -135,6 +139,35 @@
     tracks = await fetchPlaylistTracks();
   }
 
+  let playlistInfo = null;
+  async function fetchPlaylistInfo(){
+    const url = 'https://www.googleapis.com/youtube/v3/playlists?part=snippet,contentDetails&id=' +
+      PLAYLIST_ID + '&key=' + YT_API_KEY;
+    const res = await fetch(url);
+    const data = await res.json();
+    if (!res.ok) throw new Error((data.error && data.error.message) || 'YouTube API greška');
+    const item = (data.items || [])[0];
+    if (!item) return null;
+    const thumbs = item.snippet.thumbnails || {};
+    const thumb = (thumbs.medium || thumbs.default || thumbs.high || {}).url || '';
+    return {
+      title: item.snippet.title,
+      author: (item.snippet.channelTitle || '').replace(/\s*-\s*Topic$/i, '').trim(),
+      thumb,
+      count: item.contentDetails ? item.contentDetails.itemCount : null
+    };
+  }
+
+  function renderPlaylistInfo(){
+    if (!playlistInfo) { els.playlistInfo.style.display = 'none'; return; }
+    els.playlistInfo.style.display = 'flex';
+    els.playlistCover.style.backgroundImage = playlistInfo.thumb ? "url('" + playlistInfo.thumb + "')" : '';
+    els.playlistName.textContent = playlistInfo.title || '';
+    const count = playlistInfo.count != null ? playlistInfo.count : tracks.length;
+    const sub = [playlistInfo.author, count + (count === 1 ? ' pjesma' : ' pjesama')].filter(Boolean).join(' · ');
+    els.playlistSub.textContent = sub;
+  }
+
   async function refreshPlaylist(){
     let fresh;
     try {
@@ -174,8 +207,12 @@
     state.queueOpen = true;
     els.backdrop.classList.add('open');
     els.sheet.classList.add('open');
+    renderPlaylistInfo();
     scrollQueueToCurrent();
     refreshPlaylist().then(scrollQueueToCurrent);
+    if (!playlistInfo) {
+      fetchPlaylistInfo().then(info => { playlistInfo = info; renderPlaylistInfo(); }).catch(() => {});
+    }
   }
   function closeQueue(){
     state.queueOpen = false;
