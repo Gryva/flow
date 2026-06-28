@@ -69,7 +69,7 @@
 
   /* cover art sits behind the ring and spins on its own */
   .tok-vinyl-cover {
-    position:absolute; inset: var(--cover-inset, 21%); border-radius:50%; overflow:hidden;
+    position:absolute; inset: 18%; border-radius:50%; overflow:hidden;
     background-color: var(--stage); z-index:1;
     animation: tok-spin 7s linear infinite;
     animation-play-state: paused;
@@ -86,7 +86,7 @@
   .tok-vinyl {
     position:absolute; inset:0; border-radius:50%; z-index:2; pointer-events:none;
     background:
-      repeating-radial-gradient(circle, rgba(0,0,0,0.16) 0px, rgba(0,0,0,0.16) 1.5px, transparent 1.5px, transparent 5px),
+      repeating-radial-gradient(circle, rgba(0,0,0,0.38) 0px, rgba(0,0,0,0.38) 1px, rgba(255,255,255,0.1) 1px, rgba(255,255,255,0.1) 2px, transparent 2px, transparent 6px),
       conic-gradient(from 0deg, #FF5A3C, #FFC857, #E2401D, #F0883E, #FF5A3C);
     box-shadow: 0 22px 50px rgba(0,0,0,0.55);
     -webkit-mask-image: radial-gradient(circle, transparent 0 25%, black 26% 100%);
@@ -98,12 +98,6 @@
   }
   @keyframes tok-spin { to { transform: rotate(360deg); } }
 
-  .tok-debug-size {
-    display:flex; align-items:center; gap:8px; font-size:12px; color:var(--muted);
-    background:var(--stage); border-radius:12px; padding:6px 12px; width:100%; max-width:320px;
-  }
-  .tok-debug-size input[type="range"] { flex:1; }
-  .tok-debug-size span:last-child { min-width:34px; text-align:right; color:var(--ink); font-weight:600; }
 
   .tok-nowmeta { text-align:center; width:100%; max-width: 420px; }
   .tok-now-title { font-family:'Fraunces',serif; font-weight:700; font-size:21px; line-height:1.25; }
@@ -219,12 +213,6 @@
       <div class="tok-vinyl-hole"></div>
     </div>
 
-    <div class="tok-debug-size">
-      <span>Cover size</span>
-      <input type="range" id="tokCoverSizeSlider" min="0" max="35" step="1" value="21">
-      <span id="tokCoverSizeValue">21%</span>
-    </div>
-
     <div class="tok-nowmeta">
       <div class="tok-now-title" id="tokNowTitle">Učitavanje playliste…</div>
       <div class="tok-now-artist" id="tokNowArtist"></div>
@@ -325,16 +313,8 @@
     queue: document.getElementById('tokQueue'),
     dirs: document.getElementById('tokDirs'),
     ytHome: document.getElementById('tokYtHome'),
-    changePlaylist: document.getElementById('tokChangePlaylist'),
-    coverSizeSlider: document.getElementById('tokCoverSizeSlider'),
-    coverSizeValue: document.getElementById('tokCoverSizeValue')
+    changePlaylist: document.getElementById('tokChangePlaylist')
   };
-
-  els.coverSizeSlider.addEventListener('input', () => {
-    const v = els.coverSizeSlider.value;
-    document.querySelector('.tok-app').style.setProperty('--cover-inset', v + '%');
-    els.coverSizeValue.textContent = v + '%';
-  });
 
   const WAVE_BARS = 40;
   function buildWave(){
