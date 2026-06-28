@@ -191,9 +191,9 @@
   .tok-modal-backdrop.open { opacity:1; pointer-events:auto; }
   .tok-modal {
     background: var(--stage); border-radius:22px; padding:20px; width:100%; max-width:360px;
-    transform: scale(0.94); transition: transform 0.25s ease;
+    transform: scale(0.94) translateY(-10vh); transition: transform 0.25s ease;
   }
-  .tok-modal-backdrop.open .tok-modal { transform: scale(1); }
+  .tok-modal-backdrop.open .tok-modal { transform: scale(1) translateY(-10vh); }
   .tok-modal-title { font-family:'Fraunces',serif; font-weight:900; font-size:18px; margin-bottom:6px; }
   .tok-modal-text { color:var(--muted); font-size:13px; margin-bottom:14px; line-height:1.4; }
   .tok-modal-input {
