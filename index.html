@@ -346,8 +346,12 @@
     return 'https://i.ytimg.com/vi/' + videoId + '/hqdefault.jpg';
   }
 
+  const isAndroid = /Android/i.test(navigator.userAgent);
   function ytMusicAppLink(videoId){
-    return 'https://music.youtube.com/watch?v=' + videoId;
+    const target = 'music.youtube.com/watch?v=' + videoId;
+    if (!isAndroid) return 'https://' + target;
+    const fallback = encodeURIComponent('https://' + target);
+    return 'intent://' + target + '#Intent;scheme=https;package=app.revanced.android.apps.youtube.music;S.browser_fallback_url=' + fallback + ';end';
   }
 
   function parseTitleArtist(snippetTitle, channelTitle){
