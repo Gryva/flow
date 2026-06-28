@@ -480,10 +480,16 @@
   }
 
   els.prevBtn.addEventListener('click', () => {
-    jumpToTrack((currentIndex - 1 + tracks.length) % tracks.length, true);
+    if (history.length) {
+      const prevTrack = history.pop();
+      currentIndex = tracks.findIndex(t => t.id === prevTrack.id);
+      loadCurrentTrack(true);
+    } else {
+      jumpToTrack((currentIndex - 1 + tracks.length) % tracks.length, true);
+    }
   });
   els.nextBtn.addEventListener('click', () => {
-    jumpToTrack((currentIndex + 1) % tracks.length, true);
+    commitEndOfSong();
   });
   els.playBtn.addEventListener('click', () => {
     if (!player || typeof player.getPlayerState !== 'function') return;
