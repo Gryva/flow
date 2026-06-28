@@ -98,7 +98,6 @@ html, body { height:100%; margin:0; }
 .tok-wave-bar { flex:1; min-width:2px; border-radius:3px; background:rgba(255,255,255,0.14); transition: background 0.2s; }
 .tok-wave-bar.played { background: var(--wave-accent, var(--gold)); }
 
-/* ---------- transport ---------- */
 /* ---------- direction picker ---------- */
 .tok-dirs { display:flex; flex-direction:column; gap:10px; width:100%; max-width:420px; margin-top:10px; }
 .tok-dir {
@@ -124,6 +123,7 @@ html, body { height:100%; margin:0; }
 .tok-dir.chosen .tok-dir-icon svg { fill:currentColor; stroke:none; }
 .tok-dir[data-dir="flow"].chosen .tok-dir-icon svg { fill:none; stroke:currentColor; stroke-width:2.6; }
 
+/* ---------- transport ---------- */
 .tok-transport {
   display:flex; align-items:center; justify-content:center; gap:16px;
   background: transparent; border-radius:999px; padding:9px 16px; margin-top:4px;
