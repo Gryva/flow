@@ -87,7 +87,7 @@
     position:absolute; inset:0; border-radius:50%; z-index:2; pointer-events:none;
     background:
       repeating-radial-gradient(circle farthest-side, rgba(0,0,0,0.45) 0px, rgba(0,0,0,0.45) 1px, rgba(255,255,255,0.14) 1px, rgba(255,255,255,0.14) 2px, transparent 2px, transparent 6px),
-      conic-gradient(from 0deg, #FF5A3C, #FFC857, #E2401D, #F0883E, #FF5A3C);
+      var(--vinyl-color, conic-gradient(from 0deg, #FF5A3C, #FFC857, #E2401D, #F0883E, #FF5A3C));
     box-shadow: 0 22px 50px rgba(0,0,0,0.55);
     -webkit-mask-image: radial-gradient(circle farthest-side, transparent 0 31%, black 33% 100%);
     mask-image: radial-gradient(circle farthest-side, transparent 0 31%, black 33% 100%);
@@ -517,7 +517,7 @@
   }
 
   function setVinylAccent(c){
-    els.vinyl.style.background = c.bg;
+    document.querySelector('.tok-app').style.setProperty('--vinyl-color', c.bg);
     document.querySelector('.tok-app').style.setProperty('--wave-accent', c.accent);
   }
 
