@@ -700,6 +700,7 @@
     updateMediaSession(t);
 
     if (player && typeof player.loadVideoById === 'function') {
+      localStorage.setItem('tok_last_pos', '0');
       if (autoplay) player.loadVideoById(t.id);
       else player.cueVideoById(t.id);
     }
@@ -728,20 +729,37 @@
     else player.playVideo();
   });
 
+  function savePosition(){
+    if (!player || typeof player.getCurrentTime !== 'function') return;
+    localStorage.setItem('tok_last_pos', String(player.getCurrentTime() || 0));
+  }
+
   function onPlayerStateChange(e){
     if (e.data === YT.PlayerState.PLAYING) {
       state.playing = true;
       els.playBtn.textContent = '❙❙';
       els.vinylCover.classList.add('spinning');
       if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
+      localStorage.setItem('tok_was_playing', '1');
     } else if (e.data === YT.PlayerState.PAUSED) {
       state.playing = false;
       els.playBtn.textContent = '▶';
       els.vinylCover.classList.remove('spinning');
       if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
+      localStorage.setItem('tok_was_playing', '0');
+      savePosition();
     } else if (e.data === YT.PlayerState.ENDED) {
+      localStorage.setItem('tok_last_pos', '0');
       commitEndOfSong();
     }
+  }
+
+  function onPlayerReady(){
+    const pos = parseFloat(localStorage.getItem('tok_last_pos') || '0');
+    const wasPlaying = localStorage.getItem('tok_was_playing') === '1';
+    if (pos > 0) player.seekTo(pos, true);
+    if (wasPlaying) player.playVideo();
+    else player.pauseVideo();
   }
 
   window.onYouTubeIframeAPIReady = function(){
@@ -749,7 +767,7 @@
       height: '1', width: '1',
       videoId: tracks[currentIndex].id,
       playerVars: { autoplay:0, controls:0, disablekb:1, modestbranding:1, rel:0, playsinline:1 },
-      events: { onStateChange: onPlayerStateChange }
+      events: { onReady: onPlayerReady, onStateChange: onPlayerStateChange }
     });
     if ('mediaSession' in navigator) {
       navigator.mediaSession.setActionHandler('play', () => player.playVideo());
@@ -759,13 +777,18 @@
     }
   };
 
+  let posSaveCounter = 0;
   setInterval(() => {
     if (!player || typeof player.getCurrentTime !== 'function' || !state.playing) return;
     const cur = player.getCurrentTime();
     const dur = player.getDuration() || tracks[currentIndex].durationSec || 0;
     if (!dur) return;
     updateWaveProgress(Math.min(100, (cur / dur) * 100));
+    posSaveCounter++;
+    if (posSaveCounter % 8 === 0) localStorage.setItem('tok_last_pos', String(cur));
   }, 250);
+
+  window.addEventListener('beforeunload', savePosition);
 
   setInterval(() => {
     if (tracks.length) refreshPlaylist();
