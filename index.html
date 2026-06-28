@@ -164,12 +164,12 @@
   .tok-sheet-handle { width:36px; height:4px; border-radius:3px; background:rgba(255,255,255,0.2); margin:0 auto 12px; cursor:pointer; flex-shrink:0; }
   .tok-sheet-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; flex-shrink:0; }
   .tok-sheet-title { font-family:'Fraunces',serif; font-weight:900; font-size:19px; }
-  .tok-order-toggle { display:flex; background:var(--sheet); border-radius:999px; padding:3px; gap:2px; }
   .tok-order-btn {
-    border:none; cursor:pointer; font-family:inherit; font-weight:700; font-size:11.5px;
-    color:var(--muted); background:transparent; border-radius:999px; padding:6px 11px;
+    border:none; cursor:pointer; display:flex; align-items:center; justify-content:center;
+    width:32px; height:32px; border-radius:50%; background:var(--sheet); color:var(--ink); flex-shrink:0;
   }
-  .tok-order-btn.active { background:var(--dusk); color:var(--ink); }
+  .tok-order-btn:active { transform:scale(0.92); }
+  .tok-order-btn svg { width:16px; height:16px; }
 
   .tok-queue { display:flex; flex-direction:column; gap:8px; overflow-y:auto; flex:1; min-height:0; }
   .tok-queue-row {
@@ -302,10 +302,9 @@
     <div class="tok-sheet-handle" id="tokHandle"></div>
     <div class="tok-sheet-header">
       <div class="tok-sheet-title">Queue</div>
-      <div class="tok-order-toggle">
-        <button class="tok-order-btn" data-order="sequential" id="tokOrderSeq">U redu</button>
-        <button class="tok-order-btn" data-order="shuffle" id="tokOrderShuffle">Nasumično</button>
-      </div>
+      <button class="tok-order-btn" id="tokOrderToggle" aria-label="Redoslijed reprodukcije">
+        <svg id="tokOrderIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg>
+      </button>
     </div>
     <div class="tok-queue" id="tokQueue"></div>
   </div>
@@ -361,8 +360,8 @@
     playlistError: document.getElementById('tokPlaylistError'),
     playlistCancel: document.getElementById('tokPlaylistCancel'),
     playlistSave: document.getElementById('tokPlaylistSave'),
-    orderSeq: document.getElementById('tokOrderSeq'),
-    orderShuffle: document.getElementById('tokOrderShuffle')
+    orderToggle: document.getElementById('tokOrderToggle'),
+    orderIcon: document.getElementById('tokOrderIcon')
   };
 
   const WAVE_BARS = 40;
@@ -566,15 +565,19 @@
     els.dirs.querySelectorAll('.tok-dir').forEach(c => c.classList.toggle('chosen', c === card));
   });
 
+  const ORDER_ICONS = {
+    sequential: '<polyline points="9 6 15 12 9 18"></polyline>',
+    shuffle: '<polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="21 16 21 21 16 21"></polyline><line x1="15" y1="15" x2="21" y2="21"></line><line x1="4" y1="4" x2="9" y2="9"></line>'
+  };
   function setOrder(order){
     state.order = order;
     localStorage.setItem('tok_order', order);
-    els.orderSeq.classList.toggle('active', order === 'sequential');
-    els.orderShuffle.classList.toggle('active', order === 'shuffle');
+    els.orderIcon.innerHTML = ORDER_ICONS[order];
     if (tracks.length) renderDirs();
   }
-  els.orderSeq.addEventListener('click', () => setOrder('sequential'));
-  els.orderShuffle.addEventListener('click', () => setOrder('shuffle'));
+  els.orderToggle.addEventListener('click', () => {
+    setOrder(state.order === 'sequential' ? 'shuffle' : 'sequential');
+  });
   setOrder(state.order);
 
   function commitEndOfSong(){
