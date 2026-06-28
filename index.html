@@ -51,8 +51,6 @@
   .tok-head { display:flex; align-items:baseline; justify-content:space-between; margin-bottom:14px; }
   .tok-wordmark { font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:24px; letter-spacing:0.5px; }
   .tok-sub { font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--muted); text-transform:uppercase; letter-spacing:1.4px; }
-  .tok-openplaylist-btn { font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:12px; color:var(--dusk); background:rgba(232,189,107,0.12); border:1px solid rgba(232,189,107,0.35); border-radius:999px; padding:8px 14px; text-decoration:none; white-space:nowrap; }
-  .tok-openplaylist-btn:active { background:rgba(232,189,107,0.22); }
 
   .tok-stage {
     position: relative;
@@ -218,7 +216,6 @@
       <div class="tok-wordmark">TOK</div>
       <div class="tok-sub">dj sufler · demo</div>
     </div>
-    <a class="tok-openplaylist-btn" id="tokOpenPlaylist" href="#">▶ otvori playlistu</a>
   </div>
 
   <div class="tok-stage">
@@ -300,7 +297,6 @@
     </div>
   </div>
 
-  <a class="tok-note" id="tokOpenInApp" href="#" style="display:block; text-decoration:none;">▶ otvori u YouTube Music</a>
 </div>
 
 <script>
@@ -308,8 +304,6 @@
   const YT_API_KEY = 'AIzaSyCkZpbb-oVsH_s2Yjn5AAql3Pfke0MExTA';
   const PLAYLIST_ID = 'PL9qqRdUh4PoNhlUS4g69SQTxteQKHVAe-';
   const LAST_CALL_S = 6; // zadnjih ~6s: pill se sam otvori kao podsjetnik (ako ga korisnik već nije sam otvorio/zatvorio)
-  const NOWPLAYING_RELAY_URL = 'YOUR_RELAY_URL_HERE'; // npoint.io bin koji Tasker puni s naslovom/artistom iz YT Music notifikacije
-  const NOWPLAYING_POLL_MS = 3000;
 
   let tracks = [];
   let currentIndex = 0;
@@ -339,9 +333,7 @@
     recapArtist: document.getElementById('tokRecapArtist'),
     secs: document.getElementById('tokSecs'),
     ring: document.getElementById('tokRing'),
-    options: document.getElementById('tokOptions'),
-    openInApp: document.getElementById('tokOpenInApp'),
-    openPlaylist: document.getElementById('tokOpenPlaylist')
+    options: document.getElementById('tokOptions')
   };
 
   const CIRC = 2 * Math.PI * 86;
@@ -350,14 +342,6 @@
 
   function ytThumb(videoId){
     return 'https://i.ytimg.com/vi/' + videoId + '/hqdefault.jpg';
-  }
-
-  const isAndroid = /Android/i.test(navigator.userAgent);
-  function ytMusicAppLink(path){
-    const target = 'music.youtube.com' + path;
-    if (!isAndroid) return 'https://' + target;
-    const fallback = encodeURIComponent('https://' + target);
-    return 'intent://' + target + '#Intent;scheme=https;package=app.revanced.android.apps.youtube.music;S.browser_fallback_url=' + fallback + ';end';
   }
 
   function parseTitleArtist(snippetTitle, channelTitle){
@@ -484,7 +468,6 @@
     els.recapCover = document.getElementById('tokRecapCover');
     els.recapTitle.textContent = t.title;
     els.recapArtist.textContent = t.artist;
-    els.openInApp.href = ytMusicAppLink('/watch?v=' + t.id);
 
     currentCandidates = pickCandidates();
     state.armedDir = 'stay';
@@ -571,55 +554,9 @@
       height: '1', width: '1',
       videoId: tracks[currentIndex].id,
       playerVars: { autoplay:0, controls:0, disablekb:1, modestbranding:1, rel:0, playsinline:1 },
-      events: {
-        onStateChange: onPlayerStateChange,
-        onReady: function(){ if (nowPlayingSyncEnabled && typeof player.mute === 'function') player.mute(); }
-      }
+      events: { onStateChange: onPlayerStateChange }
     });
   };
-
-  // --- Now-playing sync: matches the track actually playing in the YT Music app (via a Tasker-fed relay)
-  // against the playlist, so the picker logic follows real playback instead of the silent reference player.
-  const nowPlayingSyncEnabled = NOWPLAYING_RELAY_URL && NOWPLAYING_RELAY_URL !== 'YOUR_RELAY_URL_HERE';
-  let lastNowPlayingKey = '';
-
-  function normalizeText(s){
-    return (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
-  }
-
-  function findTrackByNowPlaying(title, artist){
-    const nt = normalizeText(title);
-    if (!nt) return -1;
-    const na = normalizeText(artist);
-    let bestIdx = -1, bestScore = 0;
-    tracks.forEach((t, i) => {
-      const tt = normalizeText(t.title);
-      const ta = normalizeText(t.artist);
-      let score = 0;
-      if (tt && (nt.includes(tt) || tt.includes(nt))) score += 2;
-      if (na && ta && (na.includes(ta) || ta.includes(na))) score += 1;
-      if (score > bestScore) { bestScore = score; bestIdx = i; }
-    });
-    return bestScore >= 2 ? bestIdx : -1;
-  }
-
-  async function pollNowPlaying(){
-    try {
-      const res = await fetch(NOWPLAYING_RELAY_URL, { cache:'no-store' });
-      if (!res.ok) return;
-      const data = await res.json();
-      const key = (data.title || '') + '|' + (data.artist || '');
-      if (key === lastNowPlayingKey || !data.title) return;
-      lastNowPlayingKey = key;
-      const idx = findTrackByNowPlaying(data.title, data.artist);
-      if (idx >= 0 && idx !== currentIndex) {
-        currentIndex = idx;
-        loadCurrentTrack(true);
-      }
-    } catch (err) { /* relay unreachable — ignore, keep showing last known state */ }
-  }
-
-  if (nowPlayingSyncEnabled) setInterval(pollNowPlaying, NOWPLAYING_POLL_MS);
 
   setInterval(() => {
     if (!player || typeof player.getCurrentTime !== 'function' || !state.playing) return;
@@ -644,8 +581,6 @@
       openSheet();
     }
   }, 250);
-
-  els.openPlaylist.href = ytMusicAppLink('/playlist?list=' + PLAYLIST_ID);
 
   (async function bootstrap(){
     try {
