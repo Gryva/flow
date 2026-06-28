@@ -37,6 +37,8 @@
     artist: document.getElementById('tokNowArtist'),
     status: document.getElementById('tokStatus'),
     wave: document.getElementById('tokWave'),
+    vinylWrap: document.querySelector('.tok-vinyl-wrap'),
+    nowMeta: document.querySelector('.tok-nowmeta'),
     queueToggle: document.getElementById('tokQueueToggle'),
     crossfadeToggle: document.getElementById('tokCrossfadeToggle'),
     backdrop: document.getElementById('tokBackdrop'),
@@ -303,47 +305,53 @@
     if (idx !== currentIndex) jumpToTrack(idx, true);
   });
 
-  let longPressTimer = null;
-  let longPressRow = null;
-  let longPressStart = null;
   const LONG_PRESS_MS = 500;
   const LONG_PRESS_MOVE_TOLERANCE = 12;
 
-  function cancelLongPress(){
-    if (longPressTimer) clearTimeout(longPressTimer);
-    longPressTimer = null;
-    longPressRow = null;
-    longPressStart = null;
+  function attachLongPress(container, rowSelector, getIdx){
+    let timer = null;
+    let activeRow = null;
+    let start = null;
+
+    function cancel(){
+      if (timer) clearTimeout(timer);
+      timer = null;
+      activeRow = null;
+      start = null;
+    }
+
+    container.addEventListener('contextmenu', (e) => {
+      if (e.target.closest(rowSelector)) e.preventDefault();
+    });
+    container.addEventListener('pointerdown', (e) => {
+      const row = e.target.closest(rowSelector);
+      if (!row) return;
+      activeRow = row;
+      start = { x: e.clientX, y: e.clientY };
+      timer = setTimeout(() => {
+        if (!activeRow) return;
+        activeRow.dataset.longPressed = '1';
+        if (navigator.vibrate) navigator.vibrate(16);
+        const idx = getIdx(activeRow);
+        openSongModal(idx);
+        timer = null;
+        activeRow = null;
+        start = null;
+      }, LONG_PRESS_MS);
+    });
+    container.addEventListener('pointermove', (e) => {
+      if (!start) return;
+      const dx = e.clientX - start.x, dy = e.clientY - start.y;
+      if (Math.sqrt(dx * dx + dy * dy) > LONG_PRESS_MOVE_TOLERANCE) cancel();
+    });
+    ['pointerup', 'pointercancel', 'pointerleave'].forEach(evt => {
+      container.addEventListener(evt, cancel);
+    });
   }
 
-  els.queue.addEventListener('contextmenu', (e) => {
-    if (e.target.closest('.tok-queue-row')) e.preventDefault();
-  });
-
-  els.queue.addEventListener('pointerdown', (e) => {
-    const row = e.target.closest('.tok-queue-row');
-    if (!row) return;
-    longPressRow = row;
-    longPressStart = { x: e.clientX, y: e.clientY };
-    longPressTimer = setTimeout(() => {
-      if (!longPressRow) return;
-      longPressRow.dataset.longPressed = '1';
-      if (navigator.vibrate) navigator.vibrate(16);
-      const idx = parseInt(longPressRow.getAttribute('data-idx'), 10);
-      openSongModal(idx);
-      longPressTimer = null;
-      longPressRow = null;
-      longPressStart = null;
-    }, LONG_PRESS_MS);
-  });
-  els.queue.addEventListener('pointermove', (e) => {
-    if (!longPressStart) return;
-    const dx = e.clientX - longPressStart.x, dy = e.clientY - longPressStart.y;
-    if (Math.sqrt(dx * dx + dy * dy) > LONG_PRESS_MOVE_TOLERANCE) cancelLongPress();
-  });
-  ['pointerup', 'pointercancel', 'pointerleave'].forEach(evt => {
-    els.queue.addEventListener(evt, cancelLongPress);
-  });
+  attachLongPress(els.queue, '.tok-queue-row', (row) => parseInt(row.getAttribute('data-idx'), 10));
+  if (els.vinylWrap) attachLongPress(els.vinylWrap, '.tok-vinyl-wrap', () => currentIndex);
+  if (els.nowMeta) attachLongPress(els.nowMeta, '.tok-nowmeta', () => currentIndex);
 
   let songModalTrack = null;
   function openSongModal(idx){
@@ -390,6 +398,10 @@
     closeSongModal();
     renderQueue();
     if (tracks.length) renderDirs();
+    if (tracks[currentIndex] === songModalTrack) {
+      const nowBpm = window.TokEngine.getBPM(songModalTrack);
+      els.artist.textContent = songModalTrack.artist + (nowBpm ? ' · ' + nowBpm + ' BPM' : '');
+    }
   });
 
   function pickCandidates(){
