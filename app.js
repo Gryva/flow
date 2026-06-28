@@ -8,13 +8,6 @@
   let tracks = [];
   let currentIndex = 0;
   let player = null;
-  let inactivePlayer = null;
-  let playerA = null, playerB = null;
-  let playerBReady = false;
-  let crossfadeActive = false;
-  let crossfadeInterval = null;
-  const CROSSFADE_MS = 3000;
-  const CROSSFADE_LEAD_SEC = 3;
 
   let currentCandidates = null;
   let history = [];
@@ -22,8 +15,7 @@
   let storedOrder = localStorage.getItem('tok_order') || 'sequential';
   if (storedOrder === 'shuffle') storedOrder = 'curated';
   const state = {
-    playing:false, queueOpen:false, armedDir:'flow', order: storedOrder,
-    crossfade: localStorage.getItem('tok_crossfade') === '1'
+    playing:false, queueOpen:false, armedDir:'flow', order: storedOrder
   };
 
   const els = {
@@ -40,7 +32,6 @@
     vinylWrap: document.querySelector('.tok-vinyl-wrap'),
     nowMeta: document.querySelector('.tok-nowmeta'),
     queueToggle: document.getElementById('tokQueueToggle'),
-    crossfadeToggle: document.getElementById('tokCrossfadeToggle'),
     backdrop: document.getElementById('tokBackdrop'),
     sheet: document.getElementById('tokSheet'),
     handle: document.getElementById('tokHandle'),
@@ -291,14 +282,6 @@
     }
   }
 
-  function setCrossfade(on){
-    state.crossfade = on;
-    localStorage.setItem('tok_crossfade', on ? '1' : '0');
-    els.crossfadeToggle.classList.toggle('active', on);
-  }
-  els.crossfadeToggle.addEventListener('click', () => setCrossfade(!state.crossfade));
-  setCrossfade(state.crossfade);
-
   els.queueToggle.addEventListener('click', () => state.queueOpen ? closeQueue() : openQueue());
   els.backdrop.addEventListener('click', closeQueue);
   els.handle.addEventListener('click', closeQueue);
@@ -464,10 +447,10 @@
   });
   setOrder(state.order);
 
-  function commitEndOfSong(allowCrossfade){
+  function commitEndOfSong(){
     const picked = currentCandidates[state.armedDir];
     history.push(tracks[currentIndex]);
-    switchTrack(picked.idx, true, allowCrossfade !== false);
+    switchTrack(picked.idx, true);
   }
 
   function updateMediaSession(t){
@@ -578,74 +561,23 @@
     updateMediaSession(t);
   }
 
-  let lastSwitchAt = 0;
-
   function loadCurrentTrack(autoplay){
     const t = tracks[currentIndex];
     updateNowPlayingUI(t);
-    lastSwitchAt = Date.now();
     if (player && typeof player.loadVideoById === 'function') {
       localStorage.setItem('tok_last_pos', '0');
-      player.setVolume && player.setVolume(100);
       if (autoplay) player.loadVideoById(t.id);
       else player.cueVideoById(t.id);
     }
   }
 
-  function crossfadeToTrack(idx){
-    const outgoing = player;
-    const incoming = inactivePlayer;
-    const t = tracks[idx];
+  function switchTrack(idx, autoplay){
     currentIndex = idx;
-    updateNowPlayingUI(t);
-    localStorage.setItem('tok_last_pos', '0');
-    lastSwitchAt = Date.now();
-
-    incoming.setVolume(0);
-    incoming.loadVideoById(t.id);
-    crossfadeActive = true;
-
-    const steps = 24;
-    const stepMs = CROSSFADE_MS / steps;
-    let i = 0;
-    if (crossfadeInterval) clearInterval(crossfadeInterval);
-    crossfadeInterval = setInterval(() => {
-      i++;
-      const pct = i / steps;
-      try { outgoing.setVolume(Math.max(0, Math.round(100 * (1 - pct)))); } catch (e) {}
-      try { incoming.setVolume(Math.min(100, Math.round(100 * pct))); } catch (e) {}
-      if (i >= steps) {
-        clearInterval(crossfadeInterval);
-        crossfadeInterval = null;
-        try { outgoing.pauseVideo(); outgoing.setVolume(100); } catch (e) {}
-        player = incoming;
-        inactivePlayer = outgoing;
-        crossfadeActive = false;
-      }
-    }, stepMs);
-  }
-
-  function cancelCrossfade(){
-    if (crossfadeInterval) { clearInterval(crossfadeInterval); crossfadeInterval = null; }
-    if (!crossfadeActive) return;
-    crossfadeActive = false;
-    // the in-flight tween was ramping inactivePlayer up and player down —
-    // snap both back to full volume so neither is left silently muted,
-    // and leave `player`/`inactivePlayer` exactly as they are right now
-    // (no swap) since the caller is about to hard-load a track into `player`.
-    try { player.setVolume(100); } catch (e) {}
-    try { inactivePlayer.setVolume(100); inactivePlayer.pauseVideo(); } catch (e) {}
-  }
-
-  function switchTrack(idx, autoplay, allowCrossfade){
-    const canCrossfade = allowCrossfade !== false && state.crossfade && autoplay && state.playing &&
-      playerBReady && player && inactivePlayer && !crossfadeActive;
-    if (canCrossfade) crossfadeToTrack(idx);
-    else { cancelCrossfade(); currentIndex = idx; loadCurrentTrack(autoplay); }
+    loadCurrentTrack(autoplay);
   }
 
   function jumpToTrack(idx, autoplay){
-    switchTrack(idx, autoplay, false);
+    switchTrack(idx, autoplay);
   }
 
   function tapFeedback(btn){
@@ -659,14 +591,14 @@
     tapFeedback(els.prevBtn);
     if (history.length) {
       const prevTrack = history.pop();
-      switchTrack(tracks.findIndex(t => t.id === prevTrack.id), true, false);
+      switchTrack(tracks.findIndex(t => t.id === prevTrack.id), true);
     } else {
-      switchTrack((currentIndex - 1 + tracks.length) % tracks.length, true, false);
+      switchTrack((currentIndex - 1 + tracks.length) % tracks.length, true);
     }
   });
   els.nextBtn.addEventListener('click', () => {
     tapFeedback(els.nextBtn);
-    commitEndOfSong(false);
+    commitEndOfSong();
   });
   els.playBtn.addEventListener('click', () => {
     tapFeedback(els.playBtn);
@@ -709,26 +641,13 @@
     else player.pauseVideo();
   }
 
-  function onPlayerBReady(){
-    playerBReady = true;
-    try { inactivePlayer.setVolume(100); inactivePlayer.pauseVideo(); } catch (e) {}
-  }
-
   window.onYouTubeIframeAPIReady = function(){
-    playerA = new YT.Player('ytPlayer', {
+    player = new YT.Player('ytPlayer', {
       height: '1', width: '1',
       videoId: tracks[currentIndex].id,
       playerVars: { autoplay:0, controls:0, disablekb:1, modestbranding:1, rel:0, playsinline:1 },
       events: { onReady: onPlayerReady, onStateChange: onPlayerStateChange }
     });
-    playerB = new YT.Player('ytPlayerB', {
-      height: '1', width: '1',
-      videoId: tracks[currentIndex].id,
-      playerVars: { autoplay:0, controls:0, disablekb:1, modestbranding:1, rel:0, playsinline:1 },
-      events: { onReady: onPlayerBReady, onStateChange: onPlayerStateChange }
-    });
-    player = playerA;
-    inactivePlayer = playerB;
     if ('mediaSession' in navigator) {
       navigator.mediaSession.setActionHandler('play', () => player.playVideo());
       navigator.mediaSession.setActionHandler('pause', () => player.pauseVideo());
@@ -746,10 +665,6 @@
     updateWaveProgress(Math.min(100, (cur / dur) * 100));
     posSaveCounter++;
     if (posSaveCounter % 8 === 0) localStorage.setItem('tok_last_pos', String(cur));
-    if (state.crossfade && playerBReady && !crossfadeActive && (Date.now() - lastSwitchAt) > 1500 &&
-        cur > 0 && cur <= dur && (dur - cur) <= CROSSFADE_LEAD_SEC) {
-      commitEndOfSong();
-    }
   }, 250);
 
   window.addEventListener('beforeunload', savePosition);
