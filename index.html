@@ -65,35 +65,36 @@
   }
 
   /* ---------- vinyl ---------- */
-  .tok-vinyl-wrap { width: min(62vw, 270px); aspect-ratio: 1; flex-shrink: 0; }
-  .tok-vinyl {
-    position: relative; width:100%; height:100%; border-radius:50%;
-    background: conic-gradient(from 0deg, #FF5A3C, #FFC857, #E2401D, #F0883E, #FF5A3C);
-    box-shadow: 0 22px 50px rgba(0,0,0,0.55);
+  .tok-vinyl-wrap { position:relative; width: min(62vw, 270px); aspect-ratio: 1; flex-shrink: 0; }
+
+  /* cover art sits behind the ring and spins on its own */
+  .tok-vinyl-cover {
+    position:absolute; inset:21%; border-radius:50%; overflow:hidden;
+    background-color: var(--stage); z-index:1;
     animation: tok-spin 7s linear infinite;
     animation-play-state: paused;
   }
-  .tok-vinyl.spinning { animation-play-state: running; }
-  .tok-vinyl::before {
-    content:''; position:absolute; inset:6%; border-radius:50%;
-    background: repeating-radial-gradient(circle, rgba(0,0,0,0.16) 0px, rgba(0,0,0,0.16) 1.5px, transparent 1.5px, transparent 5px);
-  }
-  .tok-vinyl-cover {
-    position:absolute; inset:24%; border-radius:50%; overflow:hidden;
-    background-color: var(--stage); transform: translateZ(0);
-    -webkit-clip-path: circle(50% at 50% 50%);
-    clip-path: circle(50% at 50% 50%);
-    box-shadow: 0 0 0 6px var(--bg), inset 0 0 0 2px rgba(255,255,255,0.12);
-  }
+  .tok-vinyl-cover.spinning { animation-play-state: running; }
   .tok-vinyl-cover-img {
     position:absolute; inset:0; width:100%; height:100%;
     object-fit:cover; object-position:center; display:block;
-    -webkit-clip-path: circle(50% at 50% 50%);
-    clip-path: circle(50% at 50% 50%);
+  }
+
+  /* the ring is static (grooves are concentric circles, so spinning it is invisible
+     anyway) and has a real transparent hole punched via mask so the cover behind
+     it shows through completely, with no clip-under-transform browser bugs */
+  .tok-vinyl {
+    position:absolute; inset:0; border-radius:50%; z-index:2; pointer-events:none;
+    background:
+      repeating-radial-gradient(circle, rgba(0,0,0,0.16) 0px, rgba(0,0,0,0.16) 1.5px, transparent 1.5px, transparent 5px),
+      conic-gradient(from 0deg, #FF5A3C, #FFC857, #E2401D, #F0883E, #FF5A3C);
+    box-shadow: 0 22px 50px rgba(0,0,0,0.55);
+    -webkit-mask-image: radial-gradient(circle, transparent 0 25%, black 26% 100%);
+    mask-image: radial-gradient(circle, transparent 0 25%, black 26% 100%);
   }
   .tok-vinyl-hole {
     position:absolute; top:50%; left:50%; width:14px; height:14px;
-    background:var(--bg); border-radius:50%; transform:translate(-50%,-50%); z-index:1;
+    background:var(--bg); border-radius:50%; transform:translate(-50%,-50%); z-index:3;
   }
   @keyframes tok-spin { to { transform: rotate(360deg); } }
 
@@ -186,7 +187,7 @@
   .tok-status { text-align:center; color:var(--muted); font-size:13px; margin-top:8px; }
 
   @media (prefers-reduced-motion: reduce) {
-    .tok-vinyl, .tok-sheet, .tok-backdrop { animation:none !important; transition:none !important; }
+    .tok-vinyl-cover, .tok-sheet, .tok-backdrop { animation:none !important; transition:none !important; }
   }
 </style>
 
@@ -202,12 +203,11 @@
 
   <div class="tok-main">
     <div class="tok-vinyl-wrap">
-      <div class="tok-vinyl" id="tokVinyl">
-        <div class="tok-vinyl-cover" id="tokVinylCover">
-          <img class="tok-vinyl-cover-img" id="tokVinylImg" alt="">
-          <div class="tok-vinyl-hole"></div>
-        </div>
+      <div class="tok-vinyl-cover" id="tokVinylCover">
+        <img class="tok-vinyl-cover-img" id="tokVinylImg" alt="">
       </div>
+      <div class="tok-vinyl" id="tokVinyl"></div>
+      <div class="tok-vinyl-hole"></div>
     </div>
 
     <div class="tok-nowmeta">
@@ -592,12 +592,12 @@
     if (e.data === YT.PlayerState.PLAYING) {
       state.playing = true;
       els.playBtn.textContent = '❙❙';
-      els.vinyl.classList.add('spinning');
+      els.vinylCover.classList.add('spinning');
       if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
     } else if (e.data === YT.PlayerState.PAUSED) {
       state.playing = false;
       els.playBtn.textContent = '▶';
-      els.vinyl.classList.remove('spinning');
+      els.vinylCover.classList.remove('spinning');
       if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
     } else if (e.data === YT.PlayerState.ENDED) {
       commitEndOfSong();
