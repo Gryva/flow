@@ -355,7 +355,7 @@
     return m + ':' + (sec < 10 ? '0' : '') + sec;
   }
 
-  async function fetchPlaylist(){
+  async function fetchPlaylistTracks(){
     let items = [];
     let pageToken = '';
     do {
@@ -369,7 +369,7 @@
     } while (pageToken && items.length < 200);
 
     const seenIds = new Set();
-    tracks = items
+    const result = items
       .filter(it => it.snippet && it.snippet.resourceId && it.snippet.resourceId.videoId &&
         it.snippet.title !== 'Deleted video' && it.snippet.title !== 'Private video')
       .map(it => {
@@ -383,17 +383,42 @@
         return true;
       });
 
-    for (let i = 0; i < tracks.length; i += 50) {
-      const batch = tracks.slice(i, i + 50);
+    for (let i = 0; i < result.length; i += 50) {
+      const batch = result.slice(i, i + 50);
       const ids = batch.map(t => t.id).join(',');
       const url = 'https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=' + ids + '&key=' + YT_API_KEY;
       const res = await fetch(url);
       const data = await res.json();
       (data.items || []).forEach(v => {
-        const t = tracks.find(x => x.id === v.id);
+        const t = result.find(x => x.id === v.id);
         if (t) t.durationSec = parseISODuration(v.contentDetails.duration);
       });
     }
+    return result;
+  }
+
+  async function fetchPlaylist(){
+    tracks = await fetchPlaylistTracks();
+  }
+
+  async function refreshPlaylist(){
+    let fresh;
+    try {
+      fresh = await fetchPlaylistTracks();
+    } catch (err) {
+      return;
+    }
+    if (!fresh.length) return;
+
+    const currentTrack = tracks[currentIndex];
+    tracks = fresh;
+
+    if (currentTrack) {
+      const newIdx = tracks.findIndex(t => t.id === currentTrack.id);
+      if (newIdx !== -1) currentIndex = newIdx;
+    }
+
+    renderQueue();
   }
 
   function renderQueue(){
@@ -411,6 +436,7 @@
     state.queueOpen = true;
     els.backdrop.classList.add('open');
     els.sheet.classList.add('open');
+    refreshPlaylist();
   }
   function closeQueue(){
     state.queueOpen = false;
@@ -632,6 +658,10 @@
     if (!dur) return;
     updateWaveProgress(Math.min(100, (cur / dur) * 100));
   }, 250);
+
+  setInterval(() => {
+    if (tracks.length) refreshPlaylist();
+  }, 30000);
 
   (async function bootstrap(){
     try {
