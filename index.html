@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="TOK">
-<link rel="stylesheet" href="style.css?v=5">
+<link rel="stylesheet" href="style.css?v=6">
 </head>
 <body style="margin:0; background:#16100E; height:100%;">
 
@@ -99,9 +99,12 @@
     <div class="tok-sheet-handle" id="tokHandle"></div>
     <div class="tok-sheet-header">
       <div class="tok-sheet-title">Queue</div>
-      <button class="tok-order-btn" id="tokOrderToggle" aria-label="Redoslijed reprodukcije">
-        <svg id="tokOrderIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg>
-      </button>
+      <div class="tok-order-wrap">
+        <div class="tok-order-label" id="tokOrderLabel"></div>
+        <button class="tok-order-btn" id="tokOrderToggle" aria-label="Redoslijed reprodukcije">
+          <svg id="tokOrderIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg>
+        </button>
+      </div>
     </div>
     <div class="tok-playlist-info" id="tokPlaylistInfo">
       <div class="tok-playlist-cover" id="tokPlaylistCover"></div>
@@ -127,7 +130,7 @@
   </div>
 </div>
 
-<script src="engine.js?v=5"></script>
-<script src="app.js?v=5"></script>
+<script src="engine.js?v=6"></script>
+<script src="app.js?v=6"></script>
 </body>
 </html>

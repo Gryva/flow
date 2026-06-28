@@ -40,6 +40,7 @@
     playlistSave: document.getElementById('tokPlaylistSave'),
     orderToggle: document.getElementById('tokOrderToggle'),
     orderIcon: document.getElementById('tokOrderIcon'),
+    orderLabel: document.getElementById('tokOrderLabel'),
     playlistInfo: document.getElementById('tokPlaylistInfo'),
     playlistCover: document.getElementById('tokPlaylistCover'),
     playlistName: document.getElementById('tokPlaylistName'),
@@ -270,10 +271,16 @@
     pure: '<circle cx="6" cy="6" r="1.6" fill="currentColor" stroke="none"></circle><circle cx="18" cy="6" r="1.6" fill="currentColor" stroke="none"></circle><circle cx="6" cy="18" r="1.6" fill="currentColor" stroke="none"></circle><circle cx="18" cy="18" r="1.6" fill="currentColor" stroke="none"></circle><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"></circle>'
   };
   const ORDER_CYCLE = ['sequential', 'curated', 'pure'];
+  const ORDER_LABELS = {
+    sequential: 'po redu',
+    curated: 'preporučeno nasumično',
+    pure: 'potpuno nasumično'
+  };
   function setOrder(order){
     state.order = order;
     localStorage.setItem('tok_order', order);
     els.orderIcon.innerHTML = ORDER_ICONS[order];
+    if (els.orderLabel) els.orderLabel.textContent = ORDER_LABELS[order];
     if (tracks.length) renderDirs();
   }
   els.orderToggle.addEventListener('click', () => {

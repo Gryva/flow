@@ -149,6 +149,8 @@ html, body { height:100%; margin:0; }
 .tok-sheet-handle { width:36px; height:4px; border-radius:3px; background:rgba(255,255,255,0.2); margin:0 auto 12px; cursor:pointer; flex-shrink:0; }
 .tok-sheet-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; flex-shrink:0; }
 .tok-sheet-title { font-family:'Fraunces',serif; font-weight:900; font-size:19px; }
+.tok-order-wrap { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+.tok-order-label { font-size:10.5px; color:var(--muted); opacity:0.7; text-transform:lowercase; white-space:nowrap; }
 .tok-order-btn {
   border:none; cursor:pointer; display:flex; align-items:center; justify-content:center;
   width:32px; height:32px; border-radius:50%; background:var(--dusk); color:var(--ink); flex-shrink:0;
