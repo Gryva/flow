@@ -308,6 +308,8 @@
   const YT_API_KEY = 'AIzaSyCkZpbb-oVsH_s2Yjn5AAql3Pfke0MExTA';
   const PLAYLIST_ID = 'PL9qqRdUh4PoNhlUS4g69SQTxteQKHVAe-';
   const LAST_CALL_S = 6; // zadnjih ~6s: pill se sam otvori kao podsjetnik (ako ga korisnik već nije sam otvorio/zatvorio)
+  const NOWPLAYING_RELAY_URL = 'YOUR_RELAY_URL_HERE'; // npoint.io bin koji Tasker puni s naslovom/artistom iz YT Music notifikacije
+  const NOWPLAYING_POLL_MS = 3000;
 
   let tracks = [];
   let currentIndex = 0;
@@ -569,9 +571,55 @@
       height: '1', width: '1',
       videoId: tracks[currentIndex].id,
       playerVars: { autoplay:0, controls:0, disablekb:1, modestbranding:1, rel:0, playsinline:1 },
-      events: { onStateChange: onPlayerStateChange }
+      events: {
+        onStateChange: onPlayerStateChange,
+        onReady: function(){ if (nowPlayingSyncEnabled && typeof player.mute === 'function') player.mute(); }
+      }
     });
   };
+
+  // --- Now-playing sync: matches the track actually playing in the YT Music app (via a Tasker-fed relay)
+  // against the playlist, so the picker logic follows real playback instead of the silent reference player.
+  const nowPlayingSyncEnabled = NOWPLAYING_RELAY_URL && NOWPLAYING_RELAY_URL !== 'YOUR_RELAY_URL_HERE';
+  let lastNowPlayingKey = '';
+
+  function normalizeText(s){
+    return (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+  }
+
+  function findTrackByNowPlaying(title, artist){
+    const nt = normalizeText(title);
+    if (!nt) return -1;
+    const na = normalizeText(artist);
+    let bestIdx = -1, bestScore = 0;
+    tracks.forEach((t, i) => {
+      const tt = normalizeText(t.title);
+      const ta = normalizeText(t.artist);
+      let score = 0;
+      if (tt && (nt.includes(tt) || tt.includes(nt))) score += 2;
+      if (na && ta && (na.includes(ta) || ta.includes(na))) score += 1;
+      if (score > bestScore) { bestScore = score; bestIdx = i; }
+    });
+    return bestScore >= 2 ? bestIdx : -1;
+  }
+
+  async function pollNowPlaying(){
+    try {
+      const res = await fetch(NOWPLAYING_RELAY_URL, { cache:'no-store' });
+      if (!res.ok) return;
+      const data = await res.json();
+      const key = (data.title || '') + '|' + (data.artist || '');
+      if (key === lastNowPlayingKey || !data.title) return;
+      lastNowPlayingKey = key;
+      const idx = findTrackByNowPlaying(data.title, data.artist);
+      if (idx >= 0 && idx !== currentIndex) {
+        currentIndex = idx;
+        loadCurrentTrack(true);
+      }
+    } catch (err) { /* relay unreachable — ignore, keep showing last known state */ }
+  }
+
+  if (nowPlayingSyncEnabled) setInterval(pollNowPlaying, NOWPLAYING_POLL_MS);
 
   setInterval(() => {
     if (!player || typeof player.getCurrentTime !== 'function' || !state.playing) return;
