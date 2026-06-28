@@ -31,6 +31,7 @@
     sheet: document.getElementById('tokSheet'),
     handle: document.getElementById('tokHandle'),
     queue: document.getElementById('tokQueue'),
+    queueSearch: document.getElementById('tokQueueSearch'),
     dirs: document.getElementById('tokDirs'),
     changePlaylist: document.getElementById('tokChangePlaylist'),
     playlistBackdrop: document.getElementById('tokPlaylistBackdrop'),
@@ -204,7 +205,22 @@
   }
 
   function renderQueue(){
-    els.queue.innerHTML = tracks.map((t, i) => {
+    const query = (els.queueSearch ? els.queueSearch.value : '').trim().toLowerCase();
+    const indices = tracks
+      .map((t, i) => i)
+      .filter(i => !query || (tracks[i].title + ' ' + tracks[i].artist).toLowerCase().includes(query));
+
+    if (!indices.length) {
+      const empty = document.createElement('div');
+      empty.className = 'tok-queue-empty';
+      empty.textContent = 'Nema pjesama za "' + query + '"';
+      els.queue.innerHTML = '';
+      els.queue.appendChild(empty);
+      return;
+    }
+
+    els.queue.innerHTML = indices.map(i => {
+      const t = tracks[i];
       const isCurrent = i === currentIndex;
       const bpm = window.TokEngine ? window.TokEngine.getBPM(t) : null;
       return '<button class="tok-queue-row' + (isCurrent ? ' current' : '') + '" data-idx="' + i + '">' +
@@ -214,6 +230,10 @@
         (bpm ? '<div class="tok-queue-bpm">' + bpm + ' BPM</div>' : '') +
         '<div class="tok-queue-dur">' + fmtTime(t.durationSec) + '</div></button>';
     }).join('');
+  }
+
+  if (els.queueSearch) {
+    els.queueSearch.addEventListener('input', renderQueue);
   }
 
   function scrollQueueToCurrent(){
@@ -235,6 +255,10 @@
     state.queueOpen = false;
     els.backdrop.classList.remove('open');
     els.sheet.classList.remove('open');
+    if (els.queueSearch && els.queueSearch.value) {
+      els.queueSearch.value = '';
+      renderQueue();
+    }
   }
 
   els.queueToggle.addEventListener('click', () => state.queueOpen ? closeQueue() : openQueue());
