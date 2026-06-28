@@ -214,6 +214,9 @@ html, body { height:100%; margin:0; }
   padding:11px 14px; color:var(--ink); font-family:inherit; font-size:14px; outline:none;
 }
 .tok-modal-input:focus { border-color:var(--dusk); }
+.tok-song-fields { display:flex; flex-direction:column; gap:10px; }
+.tok-song-field { display:flex; flex-direction:column; gap:5px; font-size:12px; color:var(--muted); }
+.tok-song-field .tok-modal-input { margin-top:0; }
 .tok-modal-error { color:var(--dusk); font-size:12px; margin-top:8px; min-height:14px; }
 .tok-modal-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:16px; }
 .tok-modal-btn {

@@ -210,5 +210,41 @@
     return song ? song.bpm : null;
   }
 
-  window.TokEngine = { init, getDatabase, saveDatabase, getSuggestions, findSongForTrack, getBPM };
+  function makeId(track){
+    const slug = normalize(track.artist + ' ' + track.title).replace(/ /g, '_');
+    return slug || track.id;
+  }
+
+  // Looks up (or creates) the database entry for a YouTube track and returns
+  // it together with the live db array, so callers can edit it in place.
+  function getOrCreateSongForTrack(track){
+    const db = getDatabase();
+    let song = findSongForTrack(track, db);
+    if (!song) {
+      song = {
+        id: makeId(track),
+        title: track.title,
+        artist: track.artist,
+        bpm: null,
+        key: '',
+        energy: 3,
+        tags: [],
+        suggestions: { speed_up: [], stay: [], slow_down: [] }
+      };
+      db.push(song);
+    }
+    return { db, song };
+  }
+
+  function upsertSongForTrack(track, fields){
+    const { db, song } = getOrCreateSongForTrack(track);
+    Object.assign(song, fields);
+    saveDatabase(db);
+    return song;
+  }
+
+  window.TokEngine = {
+    init, getDatabase, saveDatabase, getSuggestions, findSongForTrack, getBPM,
+    getOrCreateSongForTrack, upsertSongForTrack
+  };
 })();

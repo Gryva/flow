@@ -44,7 +44,17 @@
     playlistInfo: document.getElementById('tokPlaylistInfo'),
     playlistCover: document.getElementById('tokPlaylistCover'),
     playlistName: document.getElementById('tokPlaylistName'),
-    playlistSub: document.getElementById('tokPlaylistSub')
+    playlistSub: document.getElementById('tokPlaylistSub'),
+    songBackdrop: document.getElementById('tokSongBackdrop'),
+    songTitle: document.getElementById('tokSongTitle'),
+    songArtist: document.getElementById('tokSongArtist'),
+    songBpm: document.getElementById('tokSongBpm'),
+    songKey: document.getElementById('tokSongKey'),
+    songEnergy: document.getElementById('tokSongEnergy'),
+    songTags: document.getElementById('tokSongTags'),
+    songError: document.getElementById('tokSongError'),
+    songCancel: document.getElementById('tokSongCancel'),
+    songSave: document.getElementById('tokSongSave')
   };
 
   const WAVE_BARS = 40;
@@ -232,10 +242,85 @@
   els.handle.addEventListener('click', closeQueue);
   els.queue.addEventListener('click', (e) => {
     const row = e.target.closest('.tok-queue-row');
-    if (!row) return;
+    if (!row || row.dataset.longPressed === '1') { if (row) delete row.dataset.longPressed; return; }
     const idx = parseInt(row.getAttribute('data-idx'), 10);
     closeQueue();
     if (idx !== currentIndex) jumpToTrack(idx, true);
+  });
+
+  let longPressTimer = null;
+  let longPressRow = null;
+  const LONG_PRESS_MS = 500;
+
+  function cancelLongPress(){
+    if (longPressTimer) clearTimeout(longPressTimer);
+    longPressTimer = null;
+    longPressRow = null;
+  }
+
+  els.queue.addEventListener('pointerdown', (e) => {
+    const row = e.target.closest('.tok-queue-row');
+    if (!row) return;
+    longPressRow = row;
+    longPressTimer = setTimeout(() => {
+      if (!longPressRow) return;
+      longPressRow.dataset.longPressed = '1';
+      if (navigator.vibrate) navigator.vibrate(16);
+      const idx = parseInt(longPressRow.getAttribute('data-idx'), 10);
+      openSongModal(idx);
+      longPressTimer = null;
+      longPressRow = null;
+    }, LONG_PRESS_MS);
+  });
+  ['pointerup', 'pointermove', 'pointercancel', 'pointerleave'].forEach(evt => {
+    els.queue.addEventListener(evt, cancelLongPress);
+  });
+
+  let songModalTrack = null;
+  function openSongModal(idx){
+    const t = tracks[idx];
+    if (!t || !window.TokEngine) return;
+    songModalTrack = t;
+    const { song } = window.TokEngine.getOrCreateSongForTrack(t);
+    els.songTitle.textContent = t.title;
+    els.songArtist.textContent = t.artist;
+    els.songBpm.value = song.bpm || '';
+    els.songKey.value = song.key || '';
+    els.songEnergy.value = song.energy || '';
+    els.songTags.value = (song.tags || []).join(', ');
+    els.songError.textContent = '';
+    els.songBackdrop.classList.add('open');
+  }
+  function closeSongModal(){
+    els.songBackdrop.classList.remove('open');
+    songModalTrack = null;
+  }
+  els.songCancel.addEventListener('click', closeSongModal);
+  els.songBackdrop.addEventListener('click', (e) => {
+    if (e.target === els.songBackdrop) closeSongModal();
+  });
+  els.songSave.addEventListener('click', () => {
+    if (!songModalTrack) return;
+    const bpm = parseInt(els.songBpm.value, 10);
+    const energy = parseInt(els.songEnergy.value, 10);
+    if (els.songBpm.value && (isNaN(bpm) || bpm <= 0)) {
+      els.songError.textContent = 'BPM mora biti pozitivan broj.';
+      return;
+    }
+    if (els.songEnergy.value && (isNaN(energy) || energy < 1 || energy > 5)) {
+      els.songError.textContent = 'Energy mora biti broj od 1 do 5.';
+      return;
+    }
+    const tags = els.songTags.value.split(',').map(s => s.trim()).filter(Boolean);
+    window.TokEngine.upsertSongForTrack(songModalTrack, {
+      bpm: els.songBpm.value ? bpm : null,
+      key: els.songKey.value.trim(),
+      energy: els.songEnergy.value ? energy : 3,
+      tags
+    });
+    closeSongModal();
+    renderQueue();
+    if (tracks.length) renderDirs();
   });
 
   function pickCandidates(){

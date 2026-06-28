@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="TOK">
-<link rel="stylesheet" href="style.css?v=7">
+<link rel="stylesheet" href="style.css?v=8">
 </head>
 <body style="margin:0; background:#16100E; height:100%;">
 
@@ -128,9 +128,35 @@
       </div>
     </div>
   </div>
+
+  <div class="tok-modal-backdrop" id="tokSongBackdrop">
+    <div class="tok-modal">
+      <div class="tok-modal-title" id="tokSongTitle">Pjesma</div>
+      <div class="tok-modal-text" id="tokSongArtist"></div>
+      <div class="tok-song-fields">
+        <label class="tok-song-field">BPM
+          <input class="tok-modal-input" id="tokSongBpm" type="number" min="1" max="999" inputmode="numeric">
+        </label>
+        <label class="tok-song-field">Key
+          <input class="tok-modal-input" id="tokSongKey" type="text" placeholder="npr. 8A">
+        </label>
+        <label class="tok-song-field">Energy (1–5)
+          <input class="tok-modal-input" id="tokSongEnergy" type="number" min="1" max="5" inputmode="numeric">
+        </label>
+        <label class="tok-song-field">Tagovi (zarezom)
+          <input class="tok-modal-input" id="tokSongTags" type="text" placeholder="house, chill, ...">
+        </label>
+      </div>
+      <div class="tok-modal-error" id="tokSongError"></div>
+      <div class="tok-modal-actions">
+        <button class="tok-modal-btn" id="tokSongCancel">Odustani</button>
+        <button class="tok-modal-btn primary" id="tokSongSave">Spremi</button>
+      </div>
+    </div>
+  </div>
 </div>
 
-<script src="engine.js?v=7"></script>
-<script src="app.js?v=7"></script>
+<script src="engine.js?v=8"></script>
+<script src="app.js?v=8"></script>
 </body>
 </html>
