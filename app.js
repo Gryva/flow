@@ -9,7 +9,7 @@ if (window.TokEngine) window.TokEngine.init();
 
 const YT_API_KEY = 'AIzaSyCkZpbb-oVsH_s2Yjn5AAql3Pfke0MExTA';
 const DEFAULT_PLAYLIST_ID = 'PL9qqRdUh4PoNhlUS4g69SQTxteQKHVAe-';
-const PLAYLIST_ID = localStorage.getItem('tok_playlist_id') || DEFAULT_PLAYLIST_ID;
+let PLAYLIST_ID = localStorage.getItem('tok_playlist_id') || DEFAULT_PLAYLIST_ID;
 addPlaylist(PLAYLIST_ID);
 
 let tracks = [];
@@ -447,6 +447,44 @@ function commitEndOfSong(){
   switchTrack(picked.idx, true);
 }
 
+// Swaps in a different playlist's tracks without reloading the page, so the
+// song currently playing in the YouTube iframe keeps playing uninterrupted.
+// If that song isn't part of the new playlist, it's kept at the front of the
+// queue so playback and next/prev navigation stay consistent.
+function switchPlaylist(id){
+  if (id === PLAYLIST_ID) return;
+  const prevId = PLAYLIST_ID;
+  const playingTrack = tracks[currentIndex];
+  PLAYLIST_ID = id;
+  addPlaylist(id);
+  localStorage.setItem('tok_playlist_id', id);
+  closePlaylistModal();
+  closeQueue();
+  isOffline = false;
+  playlistInfo = loadPlaylistInfoCache(id);
+  renderPlaylistInfo();
+  fetchPlaylist().then(() => {
+    let idx = playingTrack ? tracks.findIndex(t => t.id === playingTrack.id) : -1;
+    if (idx === -1 && playingTrack) { tracks = [playingTrack, ...tracks]; idx = 0; }
+    currentIndex = idx === -1 ? 0 : idx;
+    localStorage.setItem('tok_last_track_id', tracks[currentIndex].id);
+    if (window.TokEngine) window.TokEngine.ensureEntriesForTracks(tracks);
+    renderQueue();
+    renderDirs();
+    if (isOffline) els.status.textContent = 'offline način (spremljena lista)';
+    fetchPlaylistInfo(YT_API_KEY, id).then(info => {
+      playlistInfo = info;
+      savePlaylistInfoCache(id, info);
+      updatePlaylistTitle(id, info.title || '');
+      renderPlaylistInfo();
+    }).catch(() => {});
+  }).catch(() => {
+    PLAYLIST_ID = prevId;
+    localStorage.setItem('tok_playlist_id', prevId);
+    els.status.textContent = 'Greška kod dohvata nove playliste';
+  });
+}
+
 // ---------- playlist-switch modal ----------
 
 function renderSavedPlaylistsList(){
@@ -461,6 +499,10 @@ function renderSavedPlaylistsList(){
     const name = document.createElement('div');
     name.className = 'tok-playlist-saved-name';
     name.textContent = (p.id === PLAYLIST_ID ? '✓ ' : '') + (p.title || p.id);
+    if (p.id !== PLAYLIST_ID) {
+      name.classList.add('tok-playlist-saved-name-clickable');
+      name.addEventListener('click', () => switchPlaylist(p.id));
+    }
     const link = document.createElement('a');
     link.className = 'tok-playlist-saved-link';
     link.href = 'https://music.youtube.com/playlist?list=' + encodeURIComponent(p.id);
@@ -478,8 +520,7 @@ function renderSavedPlaylistsList(){
       removePlaylist(p.id);
       if (p.id === PLAYLIST_ID) {
         const remaining = listPlaylists();
-        localStorage.setItem('tok_playlist_id', remaining.length ? remaining[0].id : DEFAULT_PLAYLIST_ID);
-        location.reload();
+        switchPlaylist(remaining.length ? remaining[0].id : DEFAULT_PLAYLIST_ID);
         return;
       }
       renderSavedPlaylistsList();
@@ -506,9 +547,7 @@ function savePlaylist(){
   if (!input) { closePlaylistModal(); return; }
   const id = extractPlaylistId(input);
   if (!id) { els.playlistError.textContent = 'Nisam prepoznao playlist ID.'; return; }
-  addPlaylist(id);
-  localStorage.setItem('tok_playlist_id', id);
-  location.reload();
+  switchPlaylist(id);
 }
 
 // Long-press the active-playlist row in the queue sheet to switch between
@@ -518,11 +557,7 @@ attachLongPress(els.playlistInfo, '.tok-playlist-info', (_, pos) => {
   if (saved.length < 2) return;
   openContextMenu(pos.x, pos.y, saved.map(p => ({
     label: (p.id === PLAYLIST_ID ? '✓ ' : '') + (p.title || p.id),
-    onSelect: () => {
-      if (p.id === PLAYLIST_ID) return;
-      localStorage.setItem('tok_playlist_id', p.id);
-      location.reload();
-    }
+    onSelect: () => switchPlaylist(p.id)
   })));
 });
 
