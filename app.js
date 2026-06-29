@@ -88,17 +88,30 @@ function buildWave(){
   let html = '';
   for (let i = 0; i < WAVE_BARS; i++) {
     const h = 25 + Math.round(Math.sin(i * 1.3) * 20 + Math.sin(i * 0.4) * 30 + 30);
-    const delay = (i * 0.05).toFixed(2);
-    html += '<div class="tok-wave-bar" style="height:' + Math.max(15, Math.min(100, h)) + '%;animation-delay:-' + delay + 's"></div>';
+    // Each bar gets its own random duration (1.4–3.2 s) and a negative delay so
+    // it starts mid-cycle — bars breathe independently from the moment they render.
+    const dur   = (1.4 + Math.random() * 1.8).toFixed(2);
+    const delay = (-Math.random() * 3).toFixed(2);
+    const min   = (0.25 + Math.random() * 0.3).toFixed(2);
+    html += '<div class="tok-wave-bar" style="'
+      + 'height:' + Math.max(15, Math.min(100, h)) + '%;'
+      + '--dur:' + dur + 's;'
+      + '--delay:' + delay + 's;'
+      + '--wave-min:' + min
+      + '"></div>';
   }
   els.wave.innerHTML = html;
+}
+function setWaveAnimation(playing){
+  const state = playing ? 'running' : 'paused';
+  const bars = els.wave.children;
+  for (let i = 0; i < bars.length; i++) bars[i].style.animationPlayState = state;
 }
 function updateWaveProgress(pct){
   const bars = els.wave.children;
   const cutoff = Math.round((pct / 100) * bars.length);
   for (let i = 0; i < bars.length; i++) {
     bars[i].classList.toggle('played', i < cutoff);
-    bars[i].classList.toggle('playhead', i === cutoff && cutoff > 0 && cutoff < bars.length);
   }
 }
 
@@ -666,12 +679,14 @@ function onPlayerStateChange(e){
     state.playing = true;
     els.playBtn.textContent = '❙❙';
     els.vinylCover.classList.add('spinning');
+    setWaveAnimation(true);
     if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
     localStorage.setItem('tok_was_playing', '1');
   } else if (e.data === YT.PlayerState.PAUSED) {
     state.playing = false;
     els.playBtn.textContent = '▶';
     els.vinylCover.classList.remove('spinning');
+    setWaveAnimation(false);
     if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
     localStorage.setItem('tok_was_playing', '0');
     savePosition();
@@ -737,6 +752,7 @@ setInterval(() => {
   }
   if (window.TokEngine) window.TokEngine.ensureEntriesForTracks(tracks);
   buildWave();
+  setWaveAnimation(false); // start paused; onPlayerStateChange drives it from here
   const lastId = localStorage.getItem('tok_last_track_id');
   const lastIdx = lastId ? tracks.findIndex(t => t.id === lastId) : -1;
   currentIndex = lastIdx !== -1 ? lastIdx : Math.floor(Math.random() * tracks.length);
