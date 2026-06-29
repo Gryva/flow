@@ -131,17 +131,8 @@ async function fetchPlaylist(){
 function renderPlaylistInfo(){
   if (!playlistInfo) { els.playlistInfo.style.display = 'none'; return; }
   els.playlistInfo.style.display = 'flex';
-  // YouTube's API doesn't expose custom playlist artwork, so the first
-  // track's thumbnail stands in for the cover (falls back to a letter
-  // avatar only if no tracks have loaded yet).
-  const coverThumb = tracks[0] && tracks[0].thumb;
-  if (coverThumb) {
-    els.playlistCover.style.backgroundImage = "url('" + coverThumb + "')";
-    els.playlistCover.textContent = '';
-  } else {
-    els.playlistCover.style.backgroundImage = '';
-    els.playlistCover.textContent = (playlistInfo.title || '?').trim().charAt(0).toUpperCase();
-  }
+  els.playlistCover.style.backgroundImage = '';
+  els.playlistCover.textContent = (playlistInfo.title || '?').trim().charAt(0).toUpperCase();
   els.playlistName.textContent = playlistInfo.title || '';
   const count = playlistInfo.count != null ? playlistInfo.count : tracks.length;
   const sub = [playlistInfo.author, count + (count === 1 ? ' pjesma' : ' pjesama')].filter(Boolean).join(' · ');
