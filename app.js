@@ -3,12 +3,14 @@ import { createVinylColorPicker } from './js/vinyl-color.js';
 import { attachLongPress } from './js/long-press.js';
 import { saveTracksCache, loadTracksCache, savePlaylistInfoCache, loadPlaylistInfoCache } from './js/track-cache.js';
 import { openContextMenu } from './js/context-menu.js';
+import { listPlaylists, addPlaylist, updatePlaylistTitle } from './js/playlist-store.js';
 
 if (window.TokEngine) window.TokEngine.init();
 
 const YT_API_KEY = 'AIzaSyCkZpbb-oVsH_s2Yjn5AAql3Pfke0MExTA';
 const DEFAULT_PLAYLIST_ID = 'PL9qqRdUh4PoNhlUS4g69SQTxteQKHVAe-';
 const PLAYLIST_ID = localStorage.getItem('tok_playlist_id') || DEFAULT_PLAYLIST_ID;
+addPlaylist(PLAYLIST_ID);
 
 let tracks = [];
 let currentIndex = 0;
@@ -268,6 +270,7 @@ function openQueue(){
     fetchPlaylistInfo(YT_API_KEY, PLAYLIST_ID).then(info => {
       playlistInfo = info;
       savePlaylistInfoCache(PLAYLIST_ID, info);
+      updatePlaylistTitle(PLAYLIST_ID, info.title || '');
       renderPlaylistInfo();
     }).catch(() => {});
   }
@@ -446,7 +449,7 @@ function commitEndOfSong(){
 // ---------- playlist-switch modal ----------
 
 function openPlaylistModal(){
-  els.playlistInput.value = PLAYLIST_ID;
+  els.playlistInput.value = '';
   els.playlistError.textContent = '';
   els.playlistBackdrop.classList.add('open');
   els.playlistInput.focus();
@@ -459,9 +462,25 @@ function savePlaylist(){
   if (!input) { closePlaylistModal(); return; }
   const id = extractPlaylistId(input);
   if (!id) { els.playlistError.textContent = 'Nisam prepoznao playlist ID.'; return; }
+  addPlaylist(id);
   localStorage.setItem('tok_playlist_id', id);
   location.reload();
 }
+
+// Long-press the active-playlist row in the queue sheet to switch between
+// every playlist ever added (instead of having to re-paste a link).
+attachLongPress(els.playlistInfo, '.tok-playlist-info', (_, pos) => {
+  const saved = listPlaylists();
+  if (saved.length < 2) return;
+  openContextMenu(pos.x, pos.y, saved.map(p => ({
+    label: (p.id === PLAYLIST_ID ? '✓ ' : '') + (p.title || p.id),
+    onSelect: () => {
+      if (p.id === PLAYLIST_ID) return;
+      localStorage.setItem('tok_playlist_id', p.id);
+      location.reload();
+    }
+  })));
+});
 
 els.changePlaylist.addEventListener('click', openPlaylistModal);
 els.playlistCancel.addEventListener('click', closePlaylistModal);
