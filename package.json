@@ -1,0 +1,10 @@
+{
+  "name": "tok-dj-sufler",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/*.test.js test/stress/*.test.js",
+    "test:unit": "node --test test/*.test.js",
+    "test:stress": "node --test test/stress/*.test.js"
+  }
+}
