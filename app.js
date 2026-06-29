@@ -3,7 +3,7 @@ import { createVinylColorPicker } from './js/vinyl-color.js';
 import { attachLongPress } from './js/long-press.js';
 import { saveTracksCache, loadTracksCache, savePlaylistInfoCache, loadPlaylistInfoCache } from './js/track-cache.js';
 import { openContextMenu } from './js/context-menu.js';
-import { listPlaylists, addPlaylist, updatePlaylistTitle } from './js/playlist-store.js';
+import { listPlaylists, addPlaylist, updatePlaylistTitle, removePlaylist } from './js/playlist-store.js';
 
 if (window.TokEngine) window.TokEngine.init();
 
@@ -56,6 +56,7 @@ const els = {
   orderToggle: document.getElementById('tokOrderToggle'),
   orderIcon: document.getElementById('tokOrderIcon'),
   orderLabel: document.getElementById('tokOrderLabel'),
+  playlistSavedList: document.getElementById('tokPlaylistSavedList'),
   playlistInfo: document.getElementById('tokPlaylistInfo'),
   playlistCover: document.getElementById('tokPlaylistCover'),
   playlistName: document.getElementById('tokPlaylistName'),
@@ -448,11 +449,54 @@ function commitEndOfSong(){
 
 // ---------- playlist-switch modal ----------
 
+function renderSavedPlaylistsList(){
+  const list = els.playlistSavedList;
+  list.textContent = '';
+  listPlaylists().forEach(p => {
+    const row = document.createElement('div');
+    row.className = 'tok-playlist-saved-row';
+
+    const meta = document.createElement('div');
+    meta.className = 'tok-playlist-saved-meta';
+    const name = document.createElement('div');
+    name.className = 'tok-playlist-saved-name';
+    name.textContent = (p.id === PLAYLIST_ID ? '✓ ' : '') + (p.title || p.id);
+    const link = document.createElement('a');
+    link.className = 'tok-playlist-saved-link';
+    link.href = 'https://music.youtube.com/playlist?list=' + encodeURIComponent(p.id);
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.textContent = link.href;
+    meta.appendChild(name);
+    meta.appendChild(link);
+
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'tok-playlist-saved-remove';
+    removeBtn.setAttribute('aria-label', 'Ukloni playlistu');
+    removeBtn.textContent = '✕';
+    removeBtn.addEventListener('click', () => {
+      removePlaylist(p.id);
+      if (p.id === PLAYLIST_ID) {
+        const remaining = listPlaylists();
+        localStorage.setItem('tok_playlist_id', remaining.length ? remaining[0].id : DEFAULT_PLAYLIST_ID);
+        location.reload();
+        return;
+      }
+      renderSavedPlaylistsList();
+    });
+
+    row.appendChild(meta);
+    row.appendChild(removeBtn);
+    list.appendChild(row);
+  });
+}
+
 function openPlaylistModal(){
   els.playlistInput.value = '';
   els.playlistError.textContent = '';
   els.playlistBackdrop.classList.add('open');
   els.playlistInput.focus();
+  renderSavedPlaylistsList();
 }
 function closePlaylistModal(){
   els.playlistBackdrop.classList.remove('open');
