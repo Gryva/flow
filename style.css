@@ -145,7 +145,7 @@ html, body { height:100%; margin:0; }
 
 /* ---------- context menu (long-press) ---------- */
 .tok-ctx-menu {
-  position:fixed; z-index:50; background:var(--dusk); border-radius:14px;
+  position:fixed; z-index:50; background:#E2401D; border-radius:14px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.6); overflow:hidden;
   opacity:0; transform:scale(0.92); transition: opacity 0.15s ease, transform 0.15s ease;
   min-width:180px;
