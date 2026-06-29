@@ -88,7 +88,8 @@ function buildWave(){
   let html = '';
   for (let i = 0; i < WAVE_BARS; i++) {
     const h = 25 + Math.round(Math.sin(i * 1.3) * 20 + Math.sin(i * 0.4) * 30 + 30);
-    html += '<div class="tok-wave-bar" style="height:' + Math.max(15, Math.min(100, h)) + '%"></div>';
+    const delay = (i * 0.05).toFixed(2);
+    html += '<div class="tok-wave-bar" style="height:' + Math.max(15, Math.min(100, h)) + '%;animation-delay:-' + delay + 's"></div>';
   }
   els.wave.innerHTML = html;
 }
@@ -97,6 +98,7 @@ function updateWaveProgress(pct){
   const cutoff = Math.round((pct / 100) * bars.length);
   for (let i = 0; i < bars.length; i++) {
     bars[i].classList.toggle('played', i < cutoff);
+    bars[i].classList.toggle('playhead', i === cutoff && cutoff > 0 && cutoff < bars.length);
   }
 }
 
