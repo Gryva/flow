@@ -245,13 +245,20 @@ html, body { height:100%; margin:0; }
 .tok-queue-search::placeholder { color:var(--muted); }
 .tok-queue-search:focus { border-color:var(--dusk); }
 
-.tok-db-actions { display:flex; gap:8px; margin-bottom:6px; flex-shrink:0; }
+.tok-db-drawer {
+  display:grid; grid-template-rows:0fr; overflow:hidden;
+  transition:grid-template-rows 0.25s ease; flex-shrink:0;
+}
+.tok-db-drawer.open { grid-template-rows:1fr; }
+.tok-db-drawer-inner { overflow:hidden; }
+.tok-db-actions { display:flex; gap:8px; margin:0 0 6px; flex-shrink:0; }
 .tok-db-btn {
   flex:1; border:none; cursor:pointer; font-family:inherit; font-size:11.5px; font-weight:700;
   border-radius:12px; padding:8px 10px; background:var(--sheet); color:var(--muted);
 }
 .tok-db-btn:active { transform:scale(0.97); }
 .tok-db-status { text-align:center; color:var(--muted); font-size:11px; margin-bottom:8px; min-height:13px; flex-shrink:0; }
+.tok-db-toggle.active { color:var(--ink); background:var(--dusk); }
 
 .tok-queue { display:flex; flex-direction:column; gap:8px; overflow-y:auto; flex:1; min-height:0; }
 .tok-queue-empty { text-align:center; color:var(--muted); font-size:13px; padding:24px 0; }

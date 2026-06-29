@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="TOK">
-<link rel="stylesheet" href="style.css?v=46">
+<link rel="stylesheet" href="style.css?v=47">
 </head>
 <body style="margin:0; background:#16100E; height:100%;">
 
@@ -104,6 +104,13 @@
         <button class="tok-order-btn" id="tokOrderToggle" aria-label="Redoslijed reprodukcije">
           <svg id="tokOrderIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg>
         </button>
+        <button class="tok-order-btn tok-db-toggle" id="tokDbToggle" aria-label="Baza podataka">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+            <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+            <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+          </svg>
+        </button>
       </div>
     </div>
     <div class="tok-playlist-info" id="tokPlaylistInfo">
@@ -116,12 +123,16 @@
 
     <input class="tok-queue-search" id="tokQueueSearch" type="text" placeholder="Pretraži pjesme...">
 
-    <div class="tok-db-actions">
-      <button class="tok-db-btn" id="tokDbExport">⤓ Spremi bazu</button>
-      <button class="tok-db-btn" id="tokDbImport">⤒ Učitaj bazu</button>
-      <input type="file" id="tokDbImportFile" accept="application/json" style="display:none">
+    <div class="tok-db-drawer" id="tokDbDrawer">
+      <div class="tok-db-drawer-inner">
+        <div class="tok-db-actions">
+          <button class="tok-db-btn" id="tokDbExport">⤓ Spremi bazu</button>
+          <button class="tok-db-btn" id="tokDbImport">⤒ Učitaj bazu</button>
+          <input type="file" id="tokDbImportFile" accept="application/json" style="display:none">
+        </div>
+        <div class="tok-db-status" id="tokDbStatus"></div>
+      </div>
     </div>
-    <div class="tok-db-status" id="tokDbStatus"></div>
 
     <div class="tok-queue" id="tokQueue"></div>
   </div>
@@ -167,7 +178,7 @@
   </div>
 </div>
 
-<script src="engine.js?v=46"></script>
-<script type="module" src="app.js?v=46"></script>
+<script src="engine.js?v=47"></script>
+<script type="module" src="app.js?v=47"></script>
 </body>
 </html>

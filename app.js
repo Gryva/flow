@@ -71,6 +71,8 @@ const els = {
   songError: document.getElementById('tokSongError'),
   songCancel: document.getElementById('tokSongCancel'),
   songSave: document.getElementById('tokSongSave'),
+  dbToggle: document.getElementById('tokDbToggle'),
+  dbDrawer: document.getElementById('tokDbDrawer'),
   dbExport: document.getElementById('tokDbExport'),
   dbImport: document.getElementById('tokDbImport'),
   dbImportFile: document.getElementById('tokDbImportFile'),
@@ -219,6 +221,13 @@ function showDbStatus(msg){
   if (!els.dbStatus) return;
   els.dbStatus.textContent = msg;
   setTimeout(() => { if (els.dbStatus.textContent === msg) els.dbStatus.textContent = ''; }, 4000);
+}
+
+if (els.dbToggle && els.dbDrawer) {
+  els.dbToggle.addEventListener('click', () => {
+    const open = els.dbDrawer.classList.toggle('open');
+    els.dbToggle.classList.toggle('active', open);
+  });
 }
 
 if (els.dbExport) {
