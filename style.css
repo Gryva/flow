@@ -101,6 +101,7 @@ html, body { height:100%; margin:0; }
 /* ---------- direction picker ---------- */
 .tok-dirs { display:flex; flex-direction:column; gap:10px; width:100%; max-width:420px; margin-top:10px; }
 .tok-dir {
+  position:relative;
   border:none; cursor:pointer; text-align:left; font-family:inherit; color:var(--ink);
   background: var(--stage); border-radius:16px; padding:10px 14px; display:flex; align-items:center; gap:12px;
   opacity:0.55;
@@ -123,12 +124,34 @@ html, body { height:100%; margin:0; }
 .tok-dir.chosen .tok-dir-icon svg { fill:currentColor; stroke:none; }
 .tok-dir[data-dir="flow"].chosen .tok-dir-icon svg { fill:none; stroke:currentColor; stroke-width:2.6; }
 
-/* "play next" just swapped this card's track in — brief glow so it reads
-   as a deliberate replacement rather than the usual suggestion refresh. */
-.tok-dir-replaced { animation: tok-dir-replaced-pulse 0.9s ease-out; }
+/* "play next" just swapped this card's track in — strong pop + glow so it
+   reads as a deliberate replacement rather than the usual suggestion refresh. */
+.tok-dir-replaced { animation: tok-dir-replaced-pulse 1.3s cubic-bezier(0.34, 1.56, 0.64, 1); z-index: 1; }
 @keyframes tok-dir-replaced-pulse {
-  0% { box-shadow: 0 0 0 2px #E2401D, 0 0 18px rgba(226,64,29,0.7); }
-  100% { box-shadow: 0 0 0 0 rgba(226,64,29,0); }
+  0% { transform: scale(1); background: #E2401D; box-shadow: 0 0 0 3px #FFC857, 0 0 0 rgba(226,64,29,0); }
+  18% { transform: scale(1.07); background: #E2401D; box-shadow: 0 0 0 3px #FFC857, 0 0 32px rgba(226,64,29,0.9); }
+  55% { transform: scale(1.02); background: #E2401D; box-shadow: 0 0 0 2px #FFC857, 0 0 24px rgba(226,64,29,0.6); }
+  100% { transform: scale(1); background: var(--stage); box-shadow: 0 0 0 0 rgba(226,64,29,0); }
+}
+.tok-dir-replaced .tok-dir-track,
+.tok-dir-replaced .tok-dir-artist,
+.tok-dir-replaced .tok-dir-bpm { animation: tok-dir-replaced-text 1.3s ease; }
+@keyframes tok-dir-replaced-text {
+  0%, 55% { color: #fff; }
+  100% { color: inherit; }
+}
+.tok-dir-replaced::after {
+  content: '✓ Queued next';
+  position: absolute; top: -10px; right: 10px;
+  background: #FFC857; color: #2A1A0E; font-size: 10px; font-weight: 800;
+  padding: 3px 8px; border-radius: 999px; letter-spacing: 0.02em;
+  animation: tok-dir-replaced-badge 1.3s ease forwards;
+}
+@keyframes tok-dir-replaced-badge {
+  0% { opacity: 0; transform: translateY(4px) scale(0.8); }
+  15% { opacity: 1; transform: translateY(0) scale(1); }
+  75% { opacity: 1; }
+  100% { opacity: 0; }
 }
 
 /* ---------- transport ---------- */
