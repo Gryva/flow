@@ -445,8 +445,16 @@ if (els.refreshDirs) {
   els.refreshDirs.addEventListener('click', () => {
     if (!tracks.length || !window.TokEngine) return;
     if (navigator.vibrate) navigator.vibrate(10);
-    renderDirs();
-    renderQueue();
+    // Exclude current candidates so refresh always picks different songs.
+    // Preserve armedDir so the user's chosen direction isn't reset.
+    const extraHistory = currentCandidates
+      ? ['up', 'flow', 'down'].map(d => currentCandidates[d].t)
+      : [];
+    currentCandidates = window.TokEngine.getSuggestions({
+      tracks, currentIndex, mode: state.order,
+      history: [...history, ...extraHistory]
+    });
+    updateDirCards();
     els.refreshDirs.classList.remove('spinning');
     void els.refreshDirs.offsetWidth;
     els.refreshDirs.classList.add('spinning');
