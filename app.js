@@ -47,6 +47,7 @@ const els = {
   queue: document.getElementById('tokQueue'),
   queueSearch: document.getElementById('tokQueueSearch'),
   dirs: document.getElementById('tokDirs'),
+  refreshDirs: document.getElementById('tokRefreshDirs'),
   changePlaylist: document.getElementById('tokChangePlaylist'),
   playlistBackdrop: document.getElementById('tokPlaylistBackdrop'),
   playlistInput: document.getElementById('tokPlaylistInput'),
@@ -439,6 +440,19 @@ els.dirs.addEventListener('click', (e) => {
   state.armedDir = card.getAttribute('data-dir');
   els.dirs.querySelectorAll('.tok-dir').forEach(c => c.classList.toggle('chosen', c === card));
 });
+
+if (els.refreshDirs) {
+  els.refreshDirs.addEventListener('click', () => {
+    if (!tracks.length || !window.TokEngine) return;
+    if (navigator.vibrate) navigator.vibrate(10);
+    renderDirs();
+    renderQueue();
+    els.refreshDirs.classList.remove('spinning');
+    void els.refreshDirs.offsetWidth;
+    els.refreshDirs.classList.add('spinning');
+    els.refreshDirs.addEventListener('animationend', () => els.refreshDirs.classList.remove('spinning'), { once: true });
+  });
+}
 
 // ---------- playback order toggle ----------
 

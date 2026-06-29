@@ -110,7 +110,19 @@ html, body { height:100%; margin:0; }
 .tok-wave-bar.played { background: var(--wave-accent, var(--gold)); }
 
 /* ---------- direction picker ---------- */
-.tok-dirs { display:flex; flex-direction:column; gap:10px; width:100%; max-width:420px; margin-top:10px; }
+@keyframes tok-refresh-spin { to { transform: rotate(-360deg); } }
+
+.tok-dirs-wrap { display:flex; flex-direction:column; align-items:center; gap:8px; width:100%; max-width:420px; margin-top:10px; }
+.tok-dirs { display:flex; flex-direction:column; gap:10px; width:100%; }
+.tok-refresh-dirs {
+  border:none; cursor:pointer; background:transparent;
+  color:var(--muted); padding:6px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  transition: color 0.15s, background 0.15s;
+}
+.tok-refresh-dirs svg { width:16px; height:16px; }
+.tok-refresh-dirs:active { color:var(--ink); background:rgba(255,255,255,0.08); }
+.tok-refresh-dirs.spinning svg { animation: tok-refresh-spin 0.45s ease-out; }
 .tok-dir {
   position:relative;
   border:none; cursor:pointer; text-align:left; font-family:inherit; color:var(--ink);
