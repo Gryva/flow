@@ -1,4 +1,4 @@
-// TOK suggestion engine — looks up the currently playing track in a small
+// Flow suggestion engine — looks up the currently playing track in a small
 // hand-curated DJ database (bpm/key/energy + "speed up / stay / slow down"
 // suggestions) and resolves those suggestions against whatever tracks are
 // actually present in the loaded YouTube playlist.

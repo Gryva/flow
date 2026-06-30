@@ -1,12 +1,12 @@
-# TOK — DJ sufler
+# Flow
 
-TOK is a DJ prompter for YouTube Music playlists. It listens to the song that's currently playing and suggests what to queue next by tempo, energy, and key, so a mix keeps flowing instead of stalling between tracks.
+Flow is a DJ prompter for YouTube Music playlists. It listens to the song that's currently playing and suggests what to queue next by tempo, energy, and key, so a mix keeps flowing instead of stalling between tracks.
 
 It's a single-page web app — no build step, no backend, no accounts. Everything runs client-side and installs as a PWA.
 
 ## Features
 
-- **Direction-based suggestions** — pick *up*, *down*, or *flow* and TOK proposes the next track to match: build energy, wind it down, or hold steady.
+- **Direction-based suggestions** — pick *up*, *down*, or *flow* and the app proposes the next track to match: build energy, wind it down, or hold steady.
 - **Per-track metadata** — BPM, key, and energy rating, editable per song and stored locally.
 - **Playlist queue** — browse, search, and reorder the current playlist; switch between multiple saved playlists.
 - **Custom theming** — pick an accent color or set a custom one via hue/saturation picker.
@@ -18,8 +18,8 @@ It's a single-page web app — no build step, no backend, no accounts. Everythin
 No build tools required — it's static HTML/CSS/JS.
 
 ```bash
-git clone https://github.com/gryva/tok-dj-sufler.git
-cd tok-dj-sufler
+git clone https://github.com/gryva/flow.git
+cd flow
 python3 -m http.server 8000
 ```
 
@@ -48,3 +48,10 @@ manifest.json    PWA manifest
 ## Tech
 
 Vanilla JavaScript (ES modules), no framework, no bundler. Tests run on Node's built-in test runner.
+
+## Author
+
+Made by **Griva**.
+
+- [Behance](https://www.behance.net/griva_lg)
+- [LinkedIn](https://www.linkedin.com/in/lovro-grivić)

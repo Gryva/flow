@@ -1,6 +1,6 @@
 {
-  "name": "TOK — DJ sufler",
-  "short_name": "TOK",
+  "name": "Flow — DJ prompter",
+  "short_name": "Flow",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

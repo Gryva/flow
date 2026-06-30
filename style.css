@@ -482,6 +482,20 @@ html.tok-bg-paused .tok-dir-flow-arrows-track {
 .tok-modal-btn.primary { background:var(--dusk); color:var(--ink); }
 .tok-modal-btn:active { transform:scale(0.96); }
 
+.tok-about-author {
+  margin-top:6px; padding-top:14px; border-top:1px solid rgba(255,255,255,0.08);
+}
+.tok-about-author-label { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.06em; }
+.tok-about-author-name { font-family:'Fraunces',serif; font-weight:900; font-size:16px; margin-top:2px; }
+.tok-about-links { display:flex; gap:10px; margin-top:10px; }
+.tok-about-link {
+  display:flex; align-items:center; gap:6px; flex:1; justify-content:center;
+  background:var(--sheet); border-radius:14px; padding:9px 12px;
+  color:var(--ink); font-size:13px; font-weight:600; text-decoration:none;
+}
+.tok-about-link svg { width:16px; height:16px; flex-shrink:0; }
+.tok-about-link:active { transform:scale(0.96); }
+
 .tok-playlist-saved-list { display:flex; flex-direction:column; gap:8px; margin-top:18px; max-height:220px; overflow-y:auto; }
 .tok-playlist-saved-row {
   display:flex; align-items:center; gap:10px; background:var(--sheet); border-radius:14px; padding:10px 12px;

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>TOK — DJ sufler (demo)</title>
+<title>Flow — DJ prompter</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon.svg">
@@ -11,14 +11,14 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="TOK">
-<link rel="stylesheet" href="style.css?v=112">
+<meta name="apple-mobile-web-app-title" content="Flow">
+<link rel="stylesheet" href="style.css?v=113">
 </head>
 <body style="margin:0; background:#000000; height:100%;">
 
 <div class="tok-app">
   <div class="tok-head">
-    <div class="tok-wordmark">TOK</div>
+    <div class="tok-wordmark">Flow</div>
     <div class="tok-head-actions">
       <button class="tok-yt-link" id="tokFullscreenToggle" aria-label="Fullscreen" data-i18n-aria="fullscreen">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -205,8 +205,32 @@
 
   <div class="tok-modal-backdrop" id="tokAboutBackdrop">
     <div class="tok-modal">
-      <div class="tok-modal-title">TOK</div>
-      <div class="tok-modal-text" data-i18n="aboutText">TOK is a DJ prompter for YouTube Music playlists — it listens to the current song and suggests the next one by tempo, energy and key, so the mix flows smoothly without interruptions.</div>
+      <div class="tok-modal-title">Flow</div>
+      <div class="tok-modal-text" data-i18n="aboutText">Flow is a DJ prompter for YouTube Music playlists — it listens to the current song and suggests the next one by tempo, energy and key, so the mix flows smoothly without interruptions.</div>
+      <div class="tok-modal-text" data-i18n="aboutText2">Pick a direction, build energy, wind it down, or hold steady, and Flow keeps queuing tracks that fit. Track metadata, playlists and your theme are all saved on this device.</div>
+      <div class="tok-about-author">
+        <div class="tok-about-author-label" data-i18n="madeBy">Made by</div>
+        <div class="tok-about-author-name">Griva</div>
+        <div class="tok-about-links">
+          <a class="tok-about-link" href="https://www.behance.net/griva_lg" target="_blank" rel="noopener noreferrer" aria-label="Behance">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M0 7h7.5a3.5 3.5 0 0 1 0 7H0z" transform="translate(2 3)"/>
+              <path d="M2 6h5.2"/>
+              <path d="M16.5 19a4.5 4.5 0 0 1-4.4-5.4c.5-2.3 2.4-3.8 4.6-3.8 2.7 0 4.5 2 4.5 4.9v.5h-7a2.3 2.3 0 0 0 2.4 2.1c.9 0 1.6-.3 2.1-1l1.7 1A4.4 4.4 0 0 1 16.5 19z"/>
+              <path d="M14.1 12.5h4.8"/>
+            </svg>
+            <span data-i18n="behance">Behance</span>
+          </a>
+          <a class="tok-about-link" href="https://www.linkedin.com/in/lovro-grivić" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4V8h4v1.5A5.97 5.97 0 0 1 16 8z"/>
+              <rect x="2" y="9" width="4" height="12"/>
+              <circle cx="4" cy="4" r="2"/>
+            </svg>
+            <span data-i18n="linkedin">LinkedIn</span>
+          </a>
+        </div>
+      </div>
       <div class="tok-modal-actions">
         <button class="tok-modal-btn primary" id="tokAboutClose" data-i18n="close">Close</button>
       </div>
@@ -240,8 +264,8 @@
   </div>
 </div>
 
-<script src="engine.js?v=112"></script>
-<script type="module" src="app.js?v=112"></script>
-<script type="module" src="js/dir-arrows.js?v=112"></script>
+<script src="engine.js?v=113"></script>
+<script type="module" src="app.js?v=113"></script>
+<script type="module" src="js/dir-arrows.js?v=113"></script>
 </body>
 </html>
