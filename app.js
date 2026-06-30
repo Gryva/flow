@@ -517,6 +517,7 @@ els.dirs.addEventListener('click', (e) => {
   if (!card || card.dataset.longPressed === '1') { if (card) delete card.dataset.longPressed; return; }
   state.armedDir = card.getAttribute('data-dir');
   els.dirs.querySelectorAll('.tok-dir').forEach(c => c.classList.toggle('chosen', c === card));
+  if (window.tokPulseDirArrows) window.tokPulseDirArrows(state.armedDir);
 });
 
 if (els.refreshDirs) {
