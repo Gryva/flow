@@ -1068,7 +1068,7 @@ let openThemeColorMenu = () => {};
 })();
 
 onLangChange(() => {
-  setOrder(state.order);
+  if (els.orderLabel) els.orderLabel.textContent = t('order.' + state.order);
   renderPlaylistInfo();
   if (tracks.length) renderQueue();
 });
