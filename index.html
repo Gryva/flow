@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="TOK">
-<link rel="stylesheet" href="style.css?v=67">
+<link rel="stylesheet" href="style.css?v=68">
 </head>
 <body style="margin:0; background:#16100E; height:100%;">
 
@@ -26,7 +26,6 @@
           <path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/>
         </svg>
       </button>
-      <button class="tok-yt-link" id="tokQueueToggle" aria-label="Otvori queue">☰</button>
       <button class="tok-yt-link" id="tokChangePlaylist" aria-label="Promijeni playlistu">⇄</button>
     </div>
   </div>
@@ -97,12 +96,15 @@
         </div>
       </button>
     </div>
-    <button class="tok-refresh-dirs" id="tokRefreshDirs" aria-label="Novi prijedlozi">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
-        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-      </svg>
-    </button>
+    <div class="tok-dirs-actions">
+      <button class="tok-refresh-dirs" id="tokRefreshDirs" aria-label="Novi prijedlozi">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+        </svg>
+      </button>
+      <button class="tok-refresh-dirs" id="tokQueueToggle" aria-label="Otvori queue">☰</button>
+    </div>
     </div>
   </div>
 
@@ -202,7 +204,7 @@
   </div>
 </div>
 
-<script src="engine.js?v=67"></script>
-<script type="module" src="app.js?v=67"></script>
+<script src="engine.js?v=68"></script>
+<script type="module" src="app.js?v=68"></script>
 </body>
 </html>
