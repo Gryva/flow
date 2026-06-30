@@ -50,8 +50,8 @@ html, body { height:100%; margin:0; }
 
 /* ---------- vinyl ---------- */
 @keyframes tok-vinyl-glow {
-  0%, 100% { transform: translate(-50%,-50%) scale(1);    opacity: 0.82; }
-  50%       { transform: translate(-50%,-50%) scale(1.12); opacity: 0.45; }
+  0%, 100% { transform: translate(-50%,-50%) scale(1);    opacity: var(--vinyl-glow-max, 0.9); }
+  50%       { transform: translate(-50%,-50%) scale(var(--vinyl-glow-scale, 1.12)); opacity: var(--vinyl-glow-min, 0.5); }
 }
 .tok-vinyl-wrap {
   position:relative; width: min(48vw, 210px); aspect-ratio: 1; flex-shrink: 0;
@@ -60,12 +60,24 @@ html, body { height:100%; margin:0; }
 .tok-vinyl-wrap::before {
   content:''; position:absolute; z-index:0;
   top:50%; left:50%;
-  width:105%; height:105%;
+  width: var(--vinyl-glow-size, 165%); height: var(--vinyl-glow-size, 165%);
   border-radius:50%;
   background: radial-gradient(circle, var(--wave-accent, var(--gold)) 0%, transparent 65%);
   animation: tok-vinyl-glow var(--vinyl-beat-dur, 3.2s) ease-in-out infinite;
   pointer-events:none;
 }
+
+/* ---------- temp debug panel (remove after tuning) ---------- */
+.tok-glow-debug {
+  position:fixed; bottom:0; left:0; right:0; z-index:999;
+  background:rgba(10,8,6,0.92); color:#fff; font-family:'JetBrains Mono',monospace;
+  font-size:11px; padding:10px 14px 14px; display:flex; flex-direction:column; gap:8px;
+  border-top:1px solid rgba(255,255,255,0.15);
+}
+.tok-glow-debug label { display:flex; align-items:center; gap:8px; }
+.tok-glow-debug label span:first-child { width:90px; flex-shrink:0; }
+.tok-glow-debug output { width:50px; flex-shrink:0; text-align:right; }
+.tok-glow-debug input[type="range"] { flex:1; }
 
 /* cover art sits behind the ring and spins on its own */
 .tok-vinyl-cover {

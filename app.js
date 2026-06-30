@@ -7,6 +7,36 @@ import { listPlaylists, addPlaylist, updatePlaylistTitle, removePlaylist } from 
 
 if (window.TokEngine) window.TokEngine.init();
 
+// ---------- TEMP: vinyl glow tuning panel (remove after values are picked) ----------
+(function setupGlowDebugPanel(){
+  const root = document.querySelector('.tok-app');
+  const panel = document.createElement('div');
+  panel.className = 'tok-glow-debug';
+  const fields = [
+    { key: '--vinyl-glow-size', label: 'Size', min: 100, max: 260, step: 1, def: 165, unit: '%' },
+    { key: '--vinyl-glow-max', label: 'Max opacity', min: 0, max: 1, step: 0.01, def: 0.9, unit: '' },
+    { key: '--vinyl-glow-min', label: 'Min opacity', min: 0, max: 1, step: 0.01, def: 0.5, unit: '' },
+    { key: '--vinyl-glow-scale', label: 'Pulse scale', min: 1, max: 1.6, step: 0.01, def: 1.12, unit: 'x' }
+  ];
+  fields.forEach(f => {
+    const label = document.createElement('label');
+    const name = document.createElement('span');
+    name.textContent = f.label;
+    const input = document.createElement('input');
+    input.type = 'range';
+    input.min = f.min; input.max = f.max; input.step = f.step; input.value = f.def;
+    const out = document.createElement('output');
+    out.textContent = f.def + f.unit;
+    input.addEventListener('input', () => {
+      root.style.setProperty(f.key, input.value + (f.unit === '%' ? '%' : ''));
+      out.textContent = input.value + f.unit;
+    });
+    label.appendChild(name); label.appendChild(input); label.appendChild(out);
+    panel.appendChild(label);
+  });
+  document.body.appendChild(panel);
+})();
+
 const YT_API_KEY = 'AIzaSyCkZpbb-oVsH_s2Yjn5AAql3Pfke0MExTA';
 const DEFAULT_PLAYLIST_ID = 'PL9qqRdUh4PoNhlUS4g69SQTxteQKHVAe-';
 let PLAYLIST_ID = localStorage.getItem('tok_playlist_id') || DEFAULT_PLAYLIST_ID;
