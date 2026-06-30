@@ -386,6 +386,7 @@ els.songSave.addEventListener('click', () => {
   if (tracks[currentIndex] === songModalTrack) {
     const nowBpm = window.TokEngine.getBPM(songModalTrack);
     els.artist.textContent = songModalTrack.artist + (nowBpm ? ' · ' + nowBpm + ' BPM' : '');
+    setVinylBeat(songModalTrack);
   }
 });
 
@@ -668,6 +669,14 @@ function setVinylAccent(c){
   document.querySelector('.tok-app').style.setProperty('--wave-accent', c.accent);
 }
 
+// Syncs the vinyl glow pulse to the track's BPM (one full expand/contract
+// cycle = 2 beats) so it visually breathes in time with the song.
+function setVinylBeat(t){
+  const bpm = window.TokEngine ? window.TokEngine.getBPM(t) : null;
+  const dur = bpm ? Math.min(4, Math.max(0.5, (60 / bpm) * 2)) : 3.2;
+  document.querySelector('.tok-app').style.setProperty('--vinyl-beat-dur', dur.toFixed(3) + 's');
+}
+
 function updateMediaSession(t){
   if (!('mediaSession' in navigator)) return;
   navigator.mediaSession.metadata = new MediaMetadata({
@@ -680,6 +689,7 @@ function updateNowPlayingUI(t){
   localStorage.setItem('tok_last_track_id', t.id);
   els.vinylImg.src = t.thumb;
   applyVinylColor(t, (track) => tracks[currentIndex] === track, setVinylAccent);
+  setVinylBeat(t);
   els.title.textContent = t.title;
   const nowBpm = window.TokEngine ? window.TokEngine.getBPM(t) : null;
   els.artist.textContent = t.artist + (nowBpm ? ' · ' + nowBpm + ' BPM' : '');

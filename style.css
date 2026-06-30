@@ -63,7 +63,7 @@ html, body { height:100%; margin:0; }
   width:105%; height:105%;
   border-radius:50%;
   background: radial-gradient(circle, var(--wave-accent, var(--gold)) 0%, transparent 65%);
-  animation: tok-vinyl-glow 3.2s ease-in-out infinite;
+  animation: tok-vinyl-glow var(--vinyl-beat-dur, 3.2s) ease-in-out infinite;
   pointer-events:none;
 }
 
