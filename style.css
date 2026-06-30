@@ -112,13 +112,12 @@ html, body { height:100%; margin:0; }
 /* ---------- direction picker ---------- */
 @keyframes tok-refresh-spin { to { transform: rotate(360deg); } }
 @keyframes tok-dir-refresh {
-  0%   { opacity:1; transform:translateY(0) scale(1); }
-  35%  { opacity:0; transform:translateY(-6px) scale(0.97); }
-  36%  { opacity:0; transform:translateY(6px) scale(0.97); }
-  100% { opacity:1; transform:translateY(0) scale(1); }
+  0%   { opacity:1; }
+  40%  { opacity:0.35; }
+  100% { opacity:1; }
 }
 
-.tok-dir.refreshing { animation: tok-dir-refresh 0.38s ease both; }
+.tok-dir.refreshing { animation: tok-dir-refresh 0.5s ease both; }
 
 .tok-dirs-wrap { display:flex; flex-direction:column; align-items:center; gap:8px; width:100%; max-width:420px; margin-top:10px; }
 .tok-dirs { display:flex; flex-direction:column; gap:10px; width:100%; }
