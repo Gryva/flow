@@ -77,7 +77,10 @@ const els = {
   dbExport: document.getElementById('tokDbExport'),
   dbImport: document.getElementById('tokDbImport'),
   dbImportFile: document.getElementById('tokDbImportFile'),
-  dbStatus: document.getElementById('tokDbStatus')
+  dbStatus: document.getElementById('tokDbStatus'),
+  wordmark: document.querySelector('.tok-wordmark'),
+  aboutBackdrop: document.getElementById('tokAboutBackdrop'),
+  aboutClose: document.getElementById('tokAboutClose')
 };
 
 const applyVinylColor = createVinylColorPicker();
@@ -336,6 +339,22 @@ attachLongPress(els.dirs, '.tok-dir', (card) => {
   const dir = card.getAttribute('data-dir');
   openSongModal(currentCandidates ? currentCandidates[dir].idx : currentIndex);
 });
+
+// ---------- about modal ----------
+
+function openAboutModal(){
+  els.aboutBackdrop.classList.add('open');
+}
+function closeAboutModal(){
+  els.aboutBackdrop.classList.remove('open');
+}
+if (els.wordmark) attachLongPress(els.wordmark, '.tok-wordmark', openAboutModal);
+if (els.aboutClose) els.aboutClose.addEventListener('click', closeAboutModal);
+if (els.aboutBackdrop) {
+  els.aboutBackdrop.addEventListener('click', (e) => {
+    if (e.target === els.aboutBackdrop) closeAboutModal();
+  });
+}
 
 // ---------- song edit modal ----------
 
