@@ -3,7 +3,7 @@
 html, body { height:100%; margin:0; }
 
 .tok-app {
-  --bg: #16100E;
+  --bg: #000000;
   --stage: #241914;
   --sheet: #2E1F19;
   --ink: #FBF1E7;
