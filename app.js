@@ -80,7 +80,8 @@ const els = {
   dbStatus: document.getElementById('tokDbStatus'),
   wordmark: document.querySelector('.tok-wordmark'),
   aboutBackdrop: document.getElementById('tokAboutBackdrop'),
-  aboutClose: document.getElementById('tokAboutClose')
+  aboutClose: document.getElementById('tokAboutClose'),
+  fullscreenToggle: document.getElementById('tokFullscreenToggle')
 };
 
 const applyVinylColor = createVinylColorPicker();
@@ -349,6 +350,25 @@ function closeAboutModal(){
   els.aboutBackdrop.classList.remove('open');
 }
 if (els.wordmark) attachLongPress(els.wordmark, '.tok-wordmark', openAboutModal);
+
+// ---------- fullscreen toggle ----------
+
+function updateFullscreenBtn(){
+  if (!els.fullscreenToggle) return;
+  els.fullscreenToggle.classList.toggle('active', !!document.fullscreenElement);
+}
+if (els.fullscreenToggle) {
+  els.fullscreenToggle.addEventListener('click', () => {
+    if (navigator.vibrate) navigator.vibrate(10);
+    if (!document.fullscreenElement) {
+      (document.documentElement.requestFullscreen ? document.documentElement : document.body)
+        .requestFullscreen().catch(() => {});
+    } else {
+      document.exitFullscreen().catch(() => {});
+    }
+  });
+  document.addEventListener('fullscreenchange', updateFullscreenBtn);
+}
 if (els.aboutClose) els.aboutClose.addEventListener('click', closeAboutModal);
 if (els.aboutBackdrop) {
   els.aboutBackdrop.addEventListener('click', (e) => {

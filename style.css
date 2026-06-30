@@ -39,6 +39,7 @@ html, body { height:100%; margin:0; }
   font-family:inherit; opacity:0.55; transition: opacity 0.2s, background 0.2s;
 }
 .tok-yt-link.active { opacity:1; background:var(--gold); color:var(--bg); }
+.tok-yt-link svg { width:16px; height:16px; }
 
 .tok-main {
   flex: 1;
