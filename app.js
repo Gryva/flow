@@ -714,6 +714,7 @@ attachLongPress(els.playlistInfo, '.tok-playlist-info', (_, pos) => {
 
 els.settingsBtn.addEventListener('click', (e) => {
   e.stopPropagation();
+  closeThemeColorMenu();
   const rect = els.settingsBtn.getBoundingClientRect();
   const pos = { x: rect.left + rect.width / 2, y: rect.bottom };
   const checkIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
@@ -914,6 +915,7 @@ setInterval(() => {
 
 // ---------- theme color picker ----------
 let openThemeColorMenu = () => {};
+let closeThemeColorMenu = () => {};
 (function setupColorPicker(){
   const toggleBtn = document.getElementById('tokSettingsBtn');
   const menu = document.getElementById('tokColorMenu');
@@ -999,6 +1001,7 @@ let openThemeColorMenu = () => {};
 
   let menuOpenedAt = 0;
   openThemeColorMenu = () => { menu.classList.add('open'); menuOpenedAt = Date.now(); };
+  closeThemeColorMenu = () => menu.classList.remove('open');
   document.addEventListener('click', (e) => {
     if (!menu.classList.contains('open')) return;
     if (Date.now() - menuOpenedAt < 50) return;
