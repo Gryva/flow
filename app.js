@@ -3,6 +3,9 @@ import { attachLongPress } from './js/long-press.js';
 import { saveTracksCache, loadTracksCache, savePlaylistInfoCache, loadPlaylistInfoCache } from './js/track-cache.js';
 import { openContextMenu } from './js/context-menu.js';
 import { listPlaylists, addPlaylist, updatePlaylistTitle, removePlaylist } from './js/playlist-store.js';
+import { t, getLang, setLang, applyStaticTranslations, onLangChange } from './js/i18n.js';
+
+applyStaticTranslations();
 
 if (window.TokEngine) window.TokEngine.init();
 
@@ -47,7 +50,7 @@ const els = {
   queueSearch: document.getElementById('tokQueueSearch'),
   dirs: document.getElementById('tokDirs'),
   refreshDirs: document.getElementById('tokRefreshDirs'),
-  changePlaylist: document.getElementById('tokChangePlaylist'),
+  settingsBtn: document.getElementById('tokSettingsBtn'),
   playlistBackdrop: document.getElementById('tokPlaylistBackdrop'),
   playlistInput: document.getElementById('tokPlaylistInput'),
   playlistError: document.getElementById('tokPlaylistError'),
@@ -170,7 +173,7 @@ function renderPlaylistInfo(){
   els.playlistCover.textContent = (playlistInfo.title || '?').trim().charAt(0).toUpperCase();
   els.playlistName.textContent = playlistInfo.title || '';
   const count = playlistInfo.count != null ? playlistInfo.count : tracks.length;
-  const sub = [playlistInfo.author, count + (count === 1 ? ' pjesma' : ' pjesama')].filter(Boolean).join(' · ');
+  const sub = [playlistInfo.author, count + ' ' + t(count === 1 ? 'songCountOne' : 'songCountOther')].filter(Boolean).join(' · ');
   els.playlistSub.textContent = sub;
 }
 
@@ -212,7 +215,7 @@ function renderQueue(){
   if (!indices.length) {
     const empty = document.createElement('div');
     empty.className = 'tok-queue-empty';
-    empty.textContent = 'Nema pjesama za "' + query + '"';
+    empty.textContent = t('noResultsFor', { query });
     els.queue.innerHTML = '';
     els.queue.appendChild(empty);
     return;
@@ -276,7 +279,7 @@ if (els.dbExport) {
     a.download = 'tok-baza-pjesama.json';
     a.click();
     URL.revokeObjectURL(url);
-    showDbStatus('Baza spremljena.');
+    showDbStatus(t('dbSaved'));
   });
 }
 if (els.dbImport && els.dbImportFile) {
@@ -289,13 +292,13 @@ if (els.dbImport && els.dbImportFile) {
     reader.onload = () => {
       try {
         const count = window.TokEngine.importDatabaseJSON(reader.result);
-        showDbStatus('Učitano ' + count + ' pjesama.');
+        showDbStatus(t('dbLoadedCount', { count }));
         if (tracks.length) { renderQueue(); renderDirs(); }
       } catch (err) {
         showDbStatus(String((err && err.message) || err));
       }
     };
-    reader.onerror = () => showDbStatus('Greška kod čitanja datoteke.');
+    reader.onerror = () => showDbStatus(t('dbReadError'));
     reader.readAsText(file);
   });
 }
@@ -348,11 +351,11 @@ attachLongPress(els.queue, '.tok-queue-row', (row, pos) => {
   openContextMenu(pos.x, pos.y, [
     {
       icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>',
-      label: 'Pusti sljedeću', onSelect: () => playNext(idx)
+      label: t('playNext'), onSelect: () => playNext(idx)
     },
     {
       icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>',
-      label: 'Detalji pjesme', onSelect: () => openSongModal(idx)
+      label: t('songDetails'), onSelect: () => openSongModal(idx)
     }
   ]);
 });
@@ -427,11 +430,11 @@ els.songSave.addEventListener('click', () => {
   const bpm = parseInt(els.songBpm.value, 10);
   const energy = parseInt(els.songEnergy.value, 10);
   if (els.songBpm.value && (isNaN(bpm) || bpm <= 0)) {
-    els.songError.textContent = 'BPM mora biti pozitivan broj.';
+    els.songError.textContent = t('bpmInvalid');
     return;
   }
   if (els.songEnergy.value && (isNaN(energy) || energy < 1 || energy > 5)) {
-    els.songError.textContent = 'Energy mora biti broj od 1 do 5.';
+    els.songError.textContent = t('energyInvalid');
     return;
   }
   const tags = els.songTags.value.split(',').map(s => s.trim()).filter(Boolean);
@@ -574,16 +577,11 @@ const ORDER_ICONS = {
   pure: '<circle cx="6" cy="6" r="1.6" fill="currentColor" stroke="none"></circle><circle cx="18" cy="6" r="1.6" fill="currentColor" stroke="none"></circle><circle cx="6" cy="18" r="1.6" fill="currentColor" stroke="none"></circle><circle cx="18" cy="18" r="1.6" fill="currentColor" stroke="none"></circle><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"></circle>'
 };
 const ORDER_CYCLE = ['sequential', 'curated', 'pure'];
-const ORDER_LABELS = {
-  sequential: 'po redu',
-  curated: 'preporučeno nasumično',
-  pure: 'potpuno nasumično'
-};
 function setOrder(order){
   state.order = order;
   localStorage.setItem('tok_order', order);
   els.orderIcon.innerHTML = ORDER_ICONS[order];
-  if (els.orderLabel) els.orderLabel.textContent = ORDER_LABELS[order];
+  if (els.orderLabel) els.orderLabel.textContent = t('order.' + order);
   if (tracks.length) { renderDirs(); renderQueue(); }
 }
 els.orderToggle.addEventListener('click', () => {
@@ -622,7 +620,7 @@ function switchPlaylist(id){
     if (window.TokEngine) window.TokEngine.ensureEntriesForTracks(tracks);
     renderQueue();
     renderDirs();
-    if (isOffline) els.status.textContent = 'offline način (spremljena lista)';
+    if (isOffline) els.status.textContent = t('offlineMode');
     fetchPlaylistInfo(YT_API_KEY, id).then(info => {
       playlistInfo = info;
       savePlaylistInfoCache(id, info);
@@ -632,7 +630,7 @@ function switchPlaylist(id){
   }).catch(() => {
     PLAYLIST_ID = prevId;
     localStorage.setItem('tok_playlist_id', prevId);
-    els.status.textContent = 'Greška kod dohvata nove playliste';
+    els.status.textContent = t('fetchPlaylistError');
   });
 }
 
@@ -697,7 +695,7 @@ function savePlaylist(){
   const input = els.playlistInput.value.trim();
   if (!input) { closePlaylistModal(); return; }
   const id = extractPlaylistId(input);
-  if (!id) { els.playlistError.textContent = 'Nisam prepoznao playlist ID.'; return; }
+  if (!id) { els.playlistError.textContent = t('playlistIdInvalid'); return; }
   switchPlaylist(id);
 }
 
@@ -714,7 +712,27 @@ attachLongPress(els.playlistInfo, '.tok-playlist-info', (_, pos) => {
   })));
 });
 
-els.changePlaylist.addEventListener('click', openPlaylistModal);
+attachLongPress(els.settingsBtn, '#tokSettingsBtn', (_, pos) => {
+  const checkIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+  openContextMenu(pos.x, pos.y, [
+    {
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>',
+      label: t('changePlaylist'), onSelect: openPlaylistModal
+    },
+    {
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r="0.5" fill="currentColor"/><circle cx="17.5" cy="10.5" r="0.5" fill="currentColor"/><circle cx="8.5" cy="7.5" r="0.5" fill="currentColor"/><circle cx="6.5" cy="12.5" r="0.5" fill="currentColor"/><path d="M12 22a10 10 0 1 1 9-14.5c.4 1-.2 2-1.3 2H17a2 2 0 0 0-2 2c0 1 .5 1.5.5 2.5A2 2 0 0 1 13.5 16a2 2 0 0 0-1.5 2c0 1.5 1 2.5 1 4 0-.3-1 0-1 0z"/></svg>',
+      label: t('themeColor'), onSelect: openThemeColorMenu
+    },
+    {
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>',
+      label: t('language'),
+      onSelect: () => openContextMenu(pos.x, pos.y, [
+        { icon: getLang() === 'en' ? checkIcon : null, label: t('langEnglish'), onSelect: () => setLang('en') },
+        { icon: getLang() === 'hr' ? checkIcon : null, label: t('langCroatian'), onSelect: () => setLang('hr') }
+      ])
+    }
+  ]);
+});
 els.playlistCancel.addEventListener('click', closePlaylistModal);
 els.playlistBackdrop.addEventListener('click', (e) => {
   if (e.target === els.playlistBackdrop) closePlaylistModal();
@@ -864,12 +882,12 @@ setInterval(() => {
   try {
     await fetchPlaylist();
   } catch (err) {
-    els.title.textContent = 'Greška kod dohvata playliste';
+    els.title.textContent = t('fetchPlaylistError');
     els.artist.textContent = String((err && err.message) || err);
     return;
   }
   if (!tracks.length) {
-    els.title.textContent = 'Playlist je prazna ili nije javno dostupna';
+    els.title.textContent = t('playlistEmpty');
     return;
   }
   if (window.TokEngine) window.TokEngine.ensureEntriesForTracks(tracks);
@@ -881,7 +899,7 @@ setInterval(() => {
   loadCurrentTrack(false);
   // updateNowPlayingUI() (called by loadCurrentTrack) clears els.status, so
   // the offline notice has to be set after it to actually be visible.
-  if (isOffline) els.status.textContent = 'offline način (spremljena lista)';
+  if (isOffline) els.status.textContent = t('offlineMode');
 
   const tag = document.createElement('script');
   tag.src = 'https://www.youtube.com/iframe_api';
@@ -889,8 +907,9 @@ setInterval(() => {
 })();
 
 // ---------- theme color picker ----------
+let openThemeColorMenu = () => {};
 (function setupColorPicker(){
-  const toggleBtn = document.getElementById('tokColorToggle');
+  const toggleBtn = document.getElementById('tokSettingsBtn');
   const menu = document.getElementById('tokColorMenu');
   const swatchesWrap = document.getElementById('tokColorSwatches');
   const customBtn = document.getElementById('tokColorCustomBtn');
@@ -972,10 +991,7 @@ setInterval(() => {
   syncCustomPanelToHue();
   apply(saved || DEFAULT_DUSK);
 
-  toggleBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    menu.classList.toggle('open');
-  });
+  openThemeColorMenu = () => menu.classList.add('open');
   document.addEventListener('click', (e) => {
     if (!menu.classList.contains('open')) return;
     if (e.target === toggleBtn || menu.contains(e.target)) return;
@@ -1042,3 +1058,9 @@ setInterval(() => {
     localStorage.removeItem(STORAGE_KEY);
   });
 })();
+
+onLangChange(() => {
+  setOrder(state.order);
+  renderPlaylistInfo();
+  if (tracks.length) renderQueue();
+});
