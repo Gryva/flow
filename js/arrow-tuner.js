@@ -102,7 +102,23 @@ function buildPanel(){
   panel.querySelector('#tokArrowReroll').addEventListener('click', rebuildAll);
 }
 
+function forceArrowsVisible(){
+  // The up/down arrows are normally gated behind the `.chosen` class (they
+  // only animate once that direction is picked). Override that while the
+  // debug panel is active so they're visible for tuning regardless of state.
+  const style = document.createElement('style');
+  style.textContent = `
+    .tok-dir-flow-arrows.diag-up .tok-dir-flow-arrows-track,
+    .tok-dir-flow-arrows.diag-down .tok-dir-flow-arrows-track {
+      animation-play-state: running !important;
+      opacity: var(--tok-arrow-opacity, 0.22) !important;
+    }
+  `;
+  document.head.appendChild(style);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+  forceArrowsVisible();
   rebuildAll();
   buildPanel();
 });
