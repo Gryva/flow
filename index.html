@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Flow">
-<link rel="stylesheet" href="style.css?v=116">
+<link rel="stylesheet" href="style.css?v=117">
 </head>
 <body style="margin:0; background:#000000; height:100%;">
 
@@ -192,20 +192,18 @@
   <div class="tok-modal-backdrop" id="tokPlaylistBackdrop">
     <div class="tok-modal">
       <div class="tok-modal-title" data-i18n="addPlaylistTitle">Add playlist</div>
-      <div class="tok-modal-text" data-i18n="addPlaylistText">Paste a YouTube Music playlist link or ID. Long-press the playlist name in the queue to switch between saved playlists.</div>
-      <input class="tok-modal-input" id="tokPlaylistInput" type="text" placeholder="https://music.youtube.com/playlist?list=...">
+      <div class="tok-playlist-saved-list" id="tokPlaylistSavedList"></div>
+      <input class="tok-modal-input tok-playlist-input-new" id="tokPlaylistInput" type="url" inputmode="url" placeholder="https://music.youtube.com/playlist?list=...">
       <div class="tok-modal-error" id="tokPlaylistError"></div>
-      <div class="tok-modal-actions">
-        <button class="tok-modal-btn" id="tokPlaylistCancel" data-i18n="cancel">Cancel</button>
-        <button class="tok-modal-btn primary" id="tokPlaylistSave" data-i18n="save">Save</button>
-      </div>
       <div class="tok-playlist-divider"><span data-i18n="orLoadLocal">or</span></div>
-      <button class="tok-modal-btn tok-local-load-btn" id="tokLocalLoadBtn">
+      <label class="tok-modal-btn tok-local-load-btn" for="tokLocalFileInput">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
         <span data-i18n="loadFromDevice">Load from device</span>
-      </button>
+      </label>
       <input type="file" id="tokLocalFileInput" accept="audio/*" multiple style="display:none">
-      <div class="tok-playlist-saved-list" id="tokPlaylistSavedList"></div>
+      <div class="tok-modal-actions">
+        <button class="tok-modal-btn" id="tokPlaylistCancel" data-i18n="cancel">Cancel</button>
+      </div>
     </div>
   </div>
 
@@ -270,9 +268,9 @@
   </div>
 </div>
 
-<script src="engine.js?v=116"></script>
-<script type="module" src="app.js?v=116"></script>
-<script type="module" src="js/dir-arrows.js?v=116"></script>
+<script src="engine.js?v=117"></script>
+<script type="module" src="app.js?v=117"></script>
+<script type="module" src="js/dir-arrows.js?v=117"></script>
   <audio id="tokLocalPlayer" style="display:none" preload="auto"></audio>
 </body>
 </html>
