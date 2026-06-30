@@ -485,6 +485,19 @@ if (els.refreshDirs) {
       currentCandidates.flow = { idx: newIdx, t: tracks[newIdx] };
     }
     updateDirCards();
+    // Animate each card with a slight stagger
+    ['up', 'flow', 'down'].forEach((dir, i) => {
+      const card = els.dirs.querySelector('[data-dir="' + dir + '"]');
+      if (!card) return;
+      card.classList.remove('refreshing');
+      void card.offsetWidth;
+      card.style.animationDelay = (i * 40) + 'ms';
+      card.classList.add('refreshing');
+      card.addEventListener('animationend', () => {
+        card.classList.remove('refreshing');
+        card.style.animationDelay = '';
+      }, { once: true });
+    });
     els.refreshDirs.classList.remove('spinning');
     void els.refreshDirs.offsetWidth;
     els.refreshDirs.classList.add('spinning');
