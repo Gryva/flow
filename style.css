@@ -252,7 +252,7 @@ html, body { height:100%; margin:0; }
   opacity:0.22;
 }
 .tok-dir-flow-arrows-track svg {
-  width:13px; height:13px; flex-shrink:0; color:#E2401D;
+  width:13px; height:13px; flex-shrink:0; color:var(--dusk);
 }
 @keyframes tok-flow-arrows-move {
   from { transform: translateY(-50%) translateX(-50%); }
