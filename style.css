@@ -269,17 +269,14 @@ html, body { height:100%; margin:0; }
   to   { transform: translateY(-50%) translateX(0%); }
 }
 
-/* The up/down direction cards only show their diagonal arrow drift once
-   chosen — i.e. once the user has tapped that card — unlike the flow
-   card's arrows, which always run. */
-.tok-dir-flow-arrows.diag-up .tok-dir-flow-arrows-track,
-.tok-dir-flow-arrows.diag-down .tok-dir-flow-arrows-track {
+/* Every direction card's arrow drift only plays once that card is the
+   chosen direction — i.e. once the user has tapped it. */
+.tok-dir-flow-arrows .tok-dir-flow-arrows-track {
   animation-play-state: paused;
   opacity: 0;
   transition: opacity 0.25s ease;
 }
-.tok-dir.chosen .tok-dir-flow-arrows.diag-up .tok-dir-flow-arrows-track,
-.tok-dir.chosen .tok-dir-flow-arrows.diag-down .tok-dir-flow-arrows-track {
+.tok-dir.chosen .tok-dir-flow-arrows .tok-dir-flow-arrows-track {
   animation-play-state: running;
   opacity: var(--tok-arrow-opacity, 0.22);
 }
