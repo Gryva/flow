@@ -85,23 +85,31 @@ function pulse(kind){
 
   const anims = Array.from(tracks).flatMap(track => track.getAnimations());
   const peakOpacity = Math.min(p.opacity * PULSE_OPACITY_FACTOR, 1);
-  const start = performance.now();
 
-  function step(now){
-    const t = Math.min((now - start) / PULSE_DURATION_MS, 1);
-    const ease = 1 - Math.pow(1 - t, 3);
-    const rate = PULSE_RATE_FACTOR + (1 - PULSE_RATE_FACTOR) * ease;
-    const opacity = peakOpacity + (p.opacity - peakOpacity) * ease;
-    anims.forEach(anim => { anim.playbackRate = rate; });
-    wrapper.style.setProperty('--tok-arrow-opacity', opacity.toFixed(3));
-    if (t < 1){
-      requestAnimationFrame(step);
-    } else {
-      anims.forEach(anim => { anim.playbackRate = 1; });
-      tracks.forEach(track => { track.style.transition = ''; });
+  // A card that's just been switched from paused to running has a *pending*
+  // animation: its start time isn't committed yet. Writing playbackRate
+  // every frame while pending cancels and re-queues that start task each
+  // time, so the animation never actually commits and looks frozen. Wait
+  // for it to actually start before driving playbackRate.
+  Promise.all(anims.map(anim => anim.ready)).then(() => {
+    const start = performance.now();
+
+    function step(now){
+      const t = Math.min((now - start) / PULSE_DURATION_MS, 1);
+      const ease = 1 - Math.pow(1 - t, 3);
+      const rate = PULSE_RATE_FACTOR + (1 - PULSE_RATE_FACTOR) * ease;
+      const opacity = peakOpacity + (p.opacity - peakOpacity) * ease;
+      anims.forEach(anim => { anim.playbackRate = rate; });
+      wrapper.style.setProperty('--tok-arrow-opacity', opacity.toFixed(3));
+      if (t < 1){
+        requestAnimationFrame(step);
+      } else {
+        anims.forEach(anim => { anim.playbackRate = 1; });
+        tracks.forEach(track => { track.style.transition = ''; });
+      }
     }
-  }
-  requestAnimationFrame(step);
+    requestAnimationFrame(step);
+  });
 }
 
 window.tokPulseDirArrows = pulse;
