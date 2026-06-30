@@ -1,6 +1,7 @@
 // Builds the drifting arrow icons behind each direction card's text/cover/icon.
 // Values below were tuned live and locked in. Each card's arrows only animate
 // once that direction is the chosen one (see .tok-dir.chosen in style.css).
+// v2 — pulse race-condition fix via per-direction generation counter.
 
 const ICONS = {
   up:   { rotate: 45,  path: '<line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/>' },
