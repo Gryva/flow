@@ -62,7 +62,15 @@ function wrapperFor(kind){
 // Brief "selection pulse": on pick, arrows jump ~15% faster and a bit
 // brighter, then ease back down to the locked-in defaults over ~900ms —
 // a subtle extra cue that the direction just changed.
-const PULSE_SPEED_FACTOR = 0.85;
+//
+// Speed is driven via Animation.playbackRate rather than by changing
+// --tok-arrow-speed (animation-duration): CSS animations derive their
+// current position from total elapsed time divided by duration, so
+// shrinking then growing the duration mid-flight recomputes that phase
+// and makes the icons visibly jump backward. playbackRate just scales how
+// fast time advances from wherever the animation currently is, so it
+// speeds up and settles back down without ever reversing.
+const PULSE_RATE_FACTOR = 1 / 0.85; // ~15% faster
 const PULSE_OPACITY_FACTOR = 1.4;
 const PULSE_DURATION_MS = 900;
 
@@ -75,20 +83,21 @@ function pulse(kind){
   // doesn't fight the per-frame values driven here.
   tracks.forEach(track => { track.style.transition = 'none'; });
 
-  const fastSpeed = p.speed * PULSE_SPEED_FACTOR;
+  const anims = Array.from(tracks).flatMap(track => track.getAnimations());
   const peakOpacity = Math.min(p.opacity * PULSE_OPACITY_FACTOR, 1);
   const start = performance.now();
 
   function step(now){
     const t = Math.min((now - start) / PULSE_DURATION_MS, 1);
     const ease = 1 - Math.pow(1 - t, 3);
-    const speed = fastSpeed + (p.speed - fastSpeed) * ease;
+    const rate = PULSE_RATE_FACTOR + (1 - PULSE_RATE_FACTOR) * ease;
     const opacity = peakOpacity + (p.opacity - peakOpacity) * ease;
-    wrapper.style.setProperty('--tok-arrow-speed', speed.toFixed(3) + 's');
+    anims.forEach(anim => { anim.playbackRate = rate; });
     wrapper.style.setProperty('--tok-arrow-opacity', opacity.toFixed(3));
     if (t < 1){
       requestAnimationFrame(step);
     } else {
+      anims.forEach(anim => { anim.playbackRate = 1; });
       tracks.forEach(track => { track.style.transition = ''; });
     }
   }
