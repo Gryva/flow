@@ -240,7 +240,7 @@ html, body { height:100%; margin:0; }
 .tok-dir.chosen .tok-dir-icon svg { fill:currentColor; stroke:none; }
 .tok-dir[data-dir="flow"].chosen .tok-dir-icon svg { fill:none; stroke:currentColor; stroke-width:2.6; }
 
-.tok-dir[data-dir="flow"] { overflow:hidden; }
+.tok-dir { overflow:hidden; }
 .tok-dir-flow-arrows {
   position:absolute; inset:0; overflow:hidden; pointer-events:none; border-radius:inherit;
 }
@@ -257,6 +257,37 @@ html, body { height:100%; margin:0; }
 @keyframes tok-flow-arrows-move {
   from { transform: translateY(-50%) translateX(-50%); }
   to   { transform: translateY(-50%) translateX(0%); }
+}
+
+/* The up/down direction cards only show their diagonal arrow drift once
+   chosen — i.e. once the user has tapped that card — unlike the flow
+   card's arrows, which always run. */
+.tok-dir-flow-arrows.diag-up .tok-dir-flow-arrows-track,
+.tok-dir-flow-arrows.diag-down .tok-dir-flow-arrows-track {
+  animation-play-state: paused;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+.tok-dir.chosen .tok-dir-flow-arrows.diag-up .tok-dir-flow-arrows-track,
+.tok-dir.chosen .tok-dir-flow-arrows.diag-down .tok-dir-flow-arrows-track {
+  animation-play-state: running;
+  opacity: 0.22;
+}
+.tok-dir-flow-arrows.diag-up .tok-dir-flow-arrows-track {
+  transform: translateY(-50%) rotate(-45deg) translateX(-50%);
+  animation-name: tok-flow-arrows-move-diag-up;
+}
+.tok-dir-flow-arrows.diag-down .tok-dir-flow-arrows-track {
+  transform: translateY(-50%) rotate(45deg) translateX(-50%);
+  animation-name: tok-flow-arrows-move-diag-down;
+}
+@keyframes tok-flow-arrows-move-diag-up {
+  from { transform: translateY(-50%) rotate(-45deg) translateX(-50%); }
+  to   { transform: translateY(-50%) rotate(-45deg) translateX(0%); }
+}
+@keyframes tok-flow-arrows-move-diag-down {
+  from { transform: translateY(-50%) rotate(45deg) translateX(-50%); }
+  to   { transform: translateY(-50%) rotate(45deg) translateX(0%); }
 }
 
 /* "play next" just swapped this card's track in — strong pop + glow so it
