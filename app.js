@@ -4,6 +4,7 @@ import { saveTracksCache, loadTracksCache, savePlaylistInfoCache, loadPlaylistIn
 import { openContextMenu } from './js/context-menu.js';
 import { listPlaylists, addPlaylist, updatePlaylistTitle, removePlaylist } from './js/playlist-store.js';
 import { t, getLang, setLang, applyStaticTranslations, onLangChange } from './js/i18n.js';
+import { filesToTracks, isLocalPlaylistId, getObjectUrl, revokeAll } from './js/local-playlist.js';
 
 applyStaticTranslations();
 
@@ -11,12 +12,16 @@ if (window.TokEngine) window.TokEngine.init();
 
 const YT_API_KEY = 'AIzaSyCkZpbb-oVsH_s2Yjn5AAql3Pfke0MExTA';
 const DEFAULT_PLAYLIST_ID = 'PL9qqRdUh4PoNhlUS4g69SQTxteQKHVAe-';
-let PLAYLIST_ID = localStorage.getItem('tok_playlist_id') || DEFAULT_PLAYLIST_ID;
+const _storedId = localStorage.getItem('tok_playlist_id') || DEFAULT_PLAYLIST_ID;
+// Local playlists are session-only (object URLs don't survive page reloads)
+let PLAYLIST_ID = isLocalPlaylistId(_storedId) ? DEFAULT_PLAYLIST_ID : _storedId;
+if (isLocalPlaylistId(_storedId)) localStorage.setItem('tok_playlist_id', DEFAULT_PLAYLIST_ID);
 addPlaylist(PLAYLIST_ID);
 
 let tracks = [];
 let currentIndex = 0;
 let player = null;
+let localAudio = null;
 
 let currentCandidates = null;
 let history = [];
@@ -56,6 +61,8 @@ const els = {
   playlistError: document.getElementById('tokPlaylistError'),
   playlistCancel: document.getElementById('tokPlaylistCancel'),
   playlistSave: document.getElementById('tokPlaylistSave'),
+  localLoadBtn: document.getElementById('tokLocalLoadBtn'),
+  localFileInput: document.getElementById('tokLocalFileInput'),
   orderToggle: document.getElementById('tokOrderToggle'),
   orderIcon: document.getElementById('tokOrderIcon'),
   orderLabel: document.getElementById('tokOrderLabel'),
@@ -93,8 +100,6 @@ function buildWave(){
   let html = '';
   for (let i = 0; i < WAVE_BARS; i++) {
     const h = 25 + Math.round(Math.sin(i * 1.3) * 20 + Math.sin(i * 0.4) * 30 + 30);
-    // Each bar gets its own random duration (1.4–3.2 s) and a negative delay so
-    // it starts mid-cycle — bars breathe independently from the moment they render.
     const dur   = (1.4 + Math.random() * 1.8).toFixed(2);
     const delay = (-Math.random() * 3).toFixed(2);
     const min   = (0.25 + Math.random() * 0.3).toFixed(2);
@@ -137,9 +142,17 @@ function updateWaveProgress(pct){
 }
 
 els.wave.addEventListener('click', (e) => {
-  if (!player || typeof player.seekTo !== 'function') return;
   const rect = els.wave.getBoundingClientRect();
   const pct = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
+  if (isLocalPlaylistId(PLAYLIST_ID)){
+    const audio = getLocalAudio();
+    const dur = audio.duration || tracks[currentIndex].durationSec || 0;
+    if (!dur) return;
+    audio.currentTime = dur * pct;
+    updateWaveProgress(pct * 100);
+    return;
+  }
+  if (!player || typeof player.seekTo !== 'function') return;
   const dur = player.getDuration() || tracks[currentIndex].durationSec || 0;
   if (!dur) return;
   player.seekTo(dur * pct, true);
@@ -151,14 +164,12 @@ els.wave.addEventListener('click', (e) => {
 let isOffline = false;
 
 async function fetchPlaylist(){
+  if (isLocalPlaylistId(PLAYLIST_ID)) return; // tracks already loaded in memory
   try {
     tracks = await fetchPlaylistTracks(YT_API_KEY, PLAYLIST_ID);
     isOffline = false;
     saveTracksCache(PLAYLIST_ID, tracks);
   } catch (err) {
-    // No signal / API unreachable — fall back to whatever we last fetched
-    // successfully for this playlist instead of leaving the DJ with a dead
-    // app mid-set. Only gives up if there's truly nothing cached yet.
     const cached = loadTracksCache(PLAYLIST_ID);
     if (!cached) throw err;
     tracks = cached.tracks;
@@ -178,6 +189,7 @@ function renderPlaylistInfo(){
 }
 
 async function refreshPlaylist(){
+  if (isLocalPlaylistId(PLAYLIST_ID)) return;
   let fresh;
   try {
     fresh = await fetchPlaylistTracks(YT_API_KEY, PLAYLIST_ID);
@@ -189,11 +201,6 @@ async function refreshPlaylist(){
   const currentTrack = tracks[currentIndex];
   const newIdx = currentTrack ? fresh.findIndex(t => t.id === currentTrack.id) : -1;
 
-  // If the track currently loaded in the player can't be found in the
-  // freshly fetched list (removed/reordered out, or a transient API
-  // glitch), bail out rather than swap the array — otherwise currentIndex
-  // would silently end up pointing at a different song than what's
-  // actually playing.
   if (currentTrack && newIdx === -1) return;
 
   tracks = fresh;
@@ -236,7 +243,7 @@ function renderQueue(){
     const isCandidate = !!dir;
     const bpm = window.TokEngine ? window.TokEngine.getBPM(t) : null;
     return '<button class="tok-queue-row' + (isCurrent ? ' current' : '') + (isCandidate ? ' candidate' : '') + '" data-idx="' + i + '">' +
-      '<div class="tok-cover--queue" style="background-image:url(\'' + t.thumb + '\')"></div>' +
+      '<div class="tok-cover--queue"' + (t.thumb ? ' style="background-image:url(\'' + t.thumb + '\')"' : '') + '></div>' +
       '<div class="tok-queue-meta"><div class="tok-queue-title">' + t.title + '</div>' +
       '<div class="tok-queue-artist">' + t.artist + '</div></div>' +
       (isCurrent ? '<div class="tok-wave-mini">' + buildMiniWaveHTML() + '</div>' : '') +
@@ -253,8 +260,6 @@ if (els.queueSearch) {
 }
 
 // ---------- local song-database backup (export/import to a JSON file) ----------
-// Lets a DJ carry the curated suggestion database between devices, or keep
-// an offline backup on the laptop itself — independent of network access.
 
 function showDbStatus(msg){
   if (!els.dbStatus) return;
@@ -378,10 +383,6 @@ if (els.wordmark) attachLongPress(els.wordmark, '.tok-wordmark', openAboutModal)
 
 // ---------- fullscreen toggle ----------
 
-// Browsers drop fullscreen on screen-lock and block auto-reentry (requires a
-// user gesture). We track intent in localStorage and show a restore banner the
-// instant the screen is unlocked so one tap brings it back.
-
 let fsRestoreBanner = null;
 
 function dismissFsRestoreBanner(){
@@ -401,7 +402,6 @@ function showFsRestoreBanner(){
       .requestFullscreen().catch(() => {});
   });
   document.body.appendChild(fsRestoreBanner);
-  // Auto-dismiss after 8 s so it doesn't linger if the user doesn't want it.
   setTimeout(dismissFsRestoreBanner, 8000);
 }
 
@@ -426,15 +426,10 @@ if (els.fullscreenToggle) {
     if (document.fullscreenElement) {
       localStorage.setItem('tok_fullscreen', '1');
       dismissFsRestoreBanner();
-    } else {
-      // Only clear intent when the user explicitly exits (via button above).
-      // Lock-screen exits don't clear it — we detect those via visibilitychange.
     }
   });
 }
 
-// When the screen unlocks (page becomes visible), check if fullscreen was lost
-// unintentionally (e.g. screen-lock) and surface the restore banner.
 document.addEventListener('visibilitychange', () => {
   if (!document.hidden && localStorage.getItem('tok_fullscreen') === '1' && !document.fullscreenElement) {
     showFsRestoreBanner();
@@ -525,15 +520,10 @@ function renderDirs(){
   updateDirCards();
 }
 
-// Long-press "Play Next" on a queue row: drops that track straight into the
-// middle (flow) choice of the 3-card picker, since that's the slot armed by
-// default and the one commitEndOfSong() falls back to.
 function playNext(idx){
   if (!currentCandidates) return;
   currentCandidates.flow = { idx, t: tracks[idx] };
   state.armedDir = 'flow';
-  // If the chosen track was already in up or down, replace that slot
-  // so there are no duplicates across the three cards.
   ['up', 'down'].forEach(dir => {
     if (currentCandidates[dir].idx === idx) {
       const forbidden = new Set([
@@ -570,9 +560,6 @@ if (els.refreshDirs) {
   els.refreshDirs.addEventListener('click', () => {
     if (!tracks.length || !window.TokEngine) return;
     if (navigator.vibrate) navigator.vibrate(10);
-    // Exclude current candidates so refresh always picks different songs.
-    // Preserve armedDir so the user's chosen direction isn't reset.
-    // Clear any "play next" highlight left over from a previous playNext() call.
     els.dirs.querySelectorAll('.tok-dir-replaced').forEach(c => c.classList.remove('tok-dir-replaced'));
     const prevCandidates = currentCandidates;
     const extraHistory = prevCandidates
@@ -582,8 +569,6 @@ if (els.refreshDirs) {
       tracks, currentIndex, mode: state.order,
       history: [...history, ...extraHistory]
     });
-    // In sequential mode the engine always picks currentIndex+1 for flow,
-    // ignoring history. Force a different pick if it's unchanged.
     if (prevCandidates && currentCandidates.flow.idx === prevCandidates.flow.idx) {
       const forbidden = new Set([
         currentIndex,
@@ -598,7 +583,6 @@ if (els.refreshDirs) {
       currentCandidates.flow = { idx: newIdx, t: tracks[newIdx] };
     }
     updateDirCards();
-    // Animate each card with a slight stagger
     ['up', 'flow', 'down'].forEach((dir, i) => {
       const card = els.dirs.querySelector('[data-dir="' + dir + '"]');
       if (!card) return;
@@ -645,10 +629,6 @@ function commitEndOfSong(){
   switchTrack(picked.idx, true);
 }
 
-// Swaps in a different playlist's tracks without reloading the page, so the
-// song currently playing in the YouTube iframe keeps playing uninterrupted.
-// If that song isn't part of the new playlist, it's kept at the front of the
-// queue so playback and next/prev navigation stay consistent.
 function switchPlaylist(id){
   if (id === PLAYLIST_ID) return;
   const prevId = PLAYLIST_ID;
@@ -688,7 +668,7 @@ function switchPlaylist(id){
 function renderSavedPlaylistsList(){
   const list = els.playlistSavedList;
   list.textContent = '';
-  listPlaylists().forEach(p => {
+  listPlaylists().filter(p => !isLocalPlaylistId(p.id)).forEach(p => {
     const row = document.createElement('div');
     row.className = 'tok-playlist-saved-row';
 
@@ -748,8 +728,6 @@ function savePlaylist(){
   switchPlaylist(id);
 }
 
-// Long-press the active-playlist row in the queue sheet to switch between
-// every playlist ever added (instead of having to re-paste a link).
 attachLongPress(els.playlistInfo, '.tok-playlist-info', (_, pos) => {
   const saved = listPlaylists();
   if (saved.length < 2) return;
@@ -795,33 +773,94 @@ els.playlistInput.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') savePlaylist();
 });
 
+if (els.localLoadBtn && els.localFileInput) {
+  els.localLoadBtn.addEventListener('click', () => els.localFileInput.click());
+  els.localFileInput.addEventListener('change', async () => {
+    const files = Array.from(els.localFileInput.files || []);
+    els.localFileInput.value = '';
+    if (!files.length) return;
+    revokeAll();
+    const loadedTracks = await filesToTracks(files);
+    if (!loadedTracks.length) return;
+    const playlistId = 'local:' + Date.now();
+    PLAYLIST_ID = playlistId;
+    localStorage.setItem('tok_playlist_id', playlistId);
+    tracks = loadedTracks;
+    currentIndex = 0;
+    history.length = 0;
+    playlistInfo = { title: 'Local files', author: '', count: tracks.length };
+    closePlaylistModal();
+    closeQueue();
+    renderPlaylistInfo();
+    renderQueue();
+    renderDirs();
+    loadCurrentTrack(false);
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.setActionHandler('play', () => getLocalAudio().play().catch(() => {}));
+      navigator.mediaSession.setActionHandler('pause', () => getLocalAudio().pause());
+      navigator.mediaSession.setActionHandler('previoustrack', () => els.prevBtn.click());
+      navigator.mediaSession.setActionHandler('nexttrack', () => els.nextBtn.click());
+    }
+  });
+}
+
 // ---------- now-playing UI ----------
 
 function updateMediaSession(t){
   if (!('mediaSession' in navigator)) return;
+  const artwork = t.thumb ? [{ src: t.thumb, sizes: '480x360', type: 'image/jpeg' }] : [];
   navigator.mediaSession.metadata = new MediaMetadata({
-    title: t.title, artist: t.artist, album: 'YouTube Music',
-    artwork: [{ src: t.thumb, sizes: '480x360', type: 'image/jpeg' }]
+    title: t.title, artist: t.artist, album: t.isLocal ? 'Local files' : 'YouTube Music',
+    artwork
   });
 }
 
 function updateNowPlayingUI(t){
-  localStorage.setItem('tok_last_track_id', t.id);
-  els.vinylImg.src = t.thumb;
+  if (!t.isLocal) localStorage.setItem('tok_last_track_id', t.id);
+  els.vinylImg.src = t.thumb || '';
   els.title.removeAttribute('data-i18n');
   els.title.textContent = t.title;
   const nowBpm = window.TokEngine ? window.TokEngine.getBPM(t) : null;
-  els.artist.textContent = t.artist + (nowBpm ? ' · ' + nowBpm + ' BPM' : '');
+  els.artist.textContent = (t.artist || '') + (nowBpm ? ' · ' + nowBpm + ' BPM' : '');
   els.status.textContent = '';
   renderQueue();
   renderDirs();
   updateMediaSession(t);
 }
 
+function getLocalAudio(){
+  if (!localAudio){
+    localAudio = document.getElementById('tokLocalPlayer');
+    localAudio.addEventListener('ended', () => commitEndOfSong());
+    localAudio.addEventListener('play', () => {
+      state.playing = true;
+      els.playBtn.textContent = '❙❙';
+      els.vinylCover.classList.add('spinning');
+      setWaveAnimation(true);
+      if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
+    });
+    localAudio.addEventListener('pause', () => {
+      if (localAudio.ended) return;
+      state.playing = false;
+      els.playBtn.textContent = '▶';
+      els.vinylCover.classList.remove('spinning');
+      setWaveAnimation(false);
+      if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
+    });
+  }
+  return localAudio;
+}
+
 function loadCurrentTrack(autoplay){
   const t = tracks[currentIndex];
   updateNowPlayingUI(t);
-  if (player && typeof player.loadVideoById === 'function') {
+  if (t.isLocal){
+    const audio = getLocalAudio();
+    const url = getObjectUrl(t.id);
+    if (url) audio.src = url;
+    if (autoplay && url) audio.play().catch(() => {});
+    if (player && typeof player.pauseVideo === 'function') player.pauseVideo();
+  } else if (player && typeof player.loadVideoById === 'function') {
     localStorage.setItem('tok_last_pos', '0');
     if (autoplay) player.loadVideoById(t.id);
     else player.cueVideoById(t.id);
@@ -855,6 +894,12 @@ els.nextBtn.addEventListener('click', () => {
 });
 els.playBtn.addEventListener('click', () => {
   tapFeedback(els.playBtn);
+  if (isLocalPlaylistId(PLAYLIST_ID)){
+    const audio = getLocalAudio();
+    if (audio.paused) audio.play().catch(() => {});
+    else audio.pause();
+    return;
+  }
   if (!player || typeof player.getPlayerState !== 'function') return;
   if (player.getPlayerState() === YT.PlayerState.PLAYING) player.pauseVideo();
   else player.playVideo();
@@ -899,9 +944,10 @@ function onPlayerReady(){
 }
 
 window.onYouTubeIframeAPIReady = function(){
+  const initialVideoId = (tracks[currentIndex] && !tracks[currentIndex].isLocal) ? tracks[currentIndex].id : '';
   player = new YT.Player('ytPlayer', {
     height: '1', width: '1',
-    videoId: tracks[currentIndex].id,
+    videoId: initialVideoId,
     playerVars: { autoplay: 0, controls: 0, disablekb: 1, modestbranding: 1, rel: 0, playsinline: 1 },
     events: { onReady: onPlayerReady, onStateChange: onPlayerStateChange }
   });
@@ -915,7 +961,16 @@ window.onYouTubeIframeAPIReady = function(){
 
 let posSaveCounter = 0;
 setInterval(() => {
-  if (!player || typeof player.getCurrentTime !== 'function' || !state.playing) return;
+  if (!state.playing) return;
+  if (isLocalPlaylistId(PLAYLIST_ID)){
+    const audio = localAudio;
+    if (!audio) return;
+    const cur = audio.currentTime;
+    const dur = audio.duration || tracks[currentIndex]?.durationSec || 0;
+    if (dur) updateWaveProgress(Math.min(100, (cur / dur) * 100));
+    return;
+  }
+  if (!player || typeof player.getCurrentTime !== 'function') return;
   const cur = player.getCurrentTime();
   const dur = player.getDuration() || tracks[currentIndex].durationSec || 0;
   if (!dur) return;
@@ -948,13 +1003,11 @@ setInterval(() => {
   }
   if (window.TokEngine) window.TokEngine.ensureEntriesForTracks(tracks);
   buildWave();
-  setWaveAnimation(false); // start paused; onPlayerStateChange drives it from here
+  setWaveAnimation(false);
   const lastId = localStorage.getItem('tok_last_track_id');
   const lastIdx = lastId ? tracks.findIndex(t => t.id === lastId) : -1;
   currentIndex = lastIdx !== -1 ? lastIdx : Math.floor(Math.random() * tracks.length);
   loadCurrentTrack(false);
-  // updateNowPlayingUI() (called by loadCurrentTrack) clears els.status, so
-  // the offline notice has to be set after it to actually be visible.
   if (isOffline) els.status.textContent = t('offlineMode');
 
   const tag = document.createElement('script');

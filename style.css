@@ -145,9 +145,6 @@ html, body { height:100%; margin:0; }
   object-fit:cover; object-position:center; display:block;
 }
 
-/* the ring is static (grooves are concentric circles, so spinning it is invisible
-   anyway) and has a real transparent hole punched via mask so the cover behind
-   it shows through completely, with no clip-under-transform browser bugs */
 .tok-vinyl {
   position:absolute; inset:0; border-radius:50%; z-index:2; pointer-events:none;
   background:
@@ -244,11 +241,6 @@ html, body { height:100%; margin:0; }
 .tok-dir-flow-arrows {
   position:absolute; inset:0; overflow:hidden; pointer-events:none; border-radius:inherit;
 }
-/* Zero-size pivot, one per row: positioned at the row's vertical offset on
-   the card's own centerline, then rotated. Because it has no size, the
-   rotation pivots exactly on that point instead of on the (much wider)
-   scrolling content's own center, which is what previously skewed the
-   diagonal arrows toward one side of the card. */
 .tok-dir-flow-arrows-row {
   position:absolute; left:50%; top:50%; width:0; height:0;
 }
@@ -261,10 +253,6 @@ html, body { height:100%; margin:0; }
   animation: tok-flow-arrows-move var(--tok-arrow-speed, 7s) linear infinite;
   opacity:var(--tok-arrow-opacity, 0.22);
 }
-/* Only the active (chosen) card's tracks get promoted to their own GPU
-   compositor layer. Scoping will-change to .chosen instead of applying it
-   to every track up front avoids holding ~60+ idle layers in GPU memory
-   for the two cards that aren't currently animating. */
 .tok-dir.chosen .tok-dir-flow-arrows-track {
   will-change: transform, opacity;
 }
@@ -276,8 +264,6 @@ html, body { height:100%; margin:0; }
   to   { transform: translateY(-50%) translateX(0%); }
 }
 
-/* Every direction card's arrow drift only plays once that card is the
-   chosen direction — i.e. once the user has tapped it. */
 .tok-dir-flow-arrows .tok-dir-flow-arrows-track {
   animation-play-state: paused;
   opacity: 0;
@@ -287,15 +273,11 @@ html, body { height:100%; margin:0; }
   animation-play-state: running;
   opacity: var(--tok-arrow-opacity, 0.22);
 }
-/* Backgrounded tab: stop the otherwise-infinite arrow animation outright
-   instead of letting it keep ticking (and compositing) off-screen. Toggled
-   by the visibilitychange listener in js/dir-arrows.js. */
 html.tok-bg-paused .tok-dir-flow-arrows-track {
   animation-play-state: paused !important;
 }
 
-/* "play next" just swapped this card's track in — strong pop + glow so it
-   reads as a deliberate replacement rather than the usual suggestion refresh. */
+/* "play next" just swapped this card's track in */
 .tok-dir-replaced { animation: tok-dir-replaced-pulse 1.3s cubic-bezier(0.34, 1.56, 0.64, 1); z-index: 1; }
 @keyframes tok-dir-replaced-pulse {
   0% { transform: scale(1); outline: 3px solid #FFC857; outline-offset: 0; box-shadow: 0 0 0 rgba(226,64,29,0); }
@@ -482,6 +464,20 @@ html.tok-bg-paused .tok-dir-flow-arrows-track {
 }
 .tok-modal-btn.primary { background:var(--dusk); color:var(--ink); }
 .tok-modal-btn:active { transform:scale(0.96); }
+.tok-playlist-divider {
+  display:flex; align-items:center; gap:10px; margin:14px 0 10px;
+  color:var(--muted); font-size:12px;
+}
+.tok-playlist-divider::before,.tok-playlist-divider::after {
+  content:''; flex:1; height:1px; background:rgba(255,255,255,0.1);
+}
+.tok-local-load-btn {
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  width:100%; border:1px dashed rgba(255,255,255,0.2);
+  padding:11px 18px; margin-bottom:4px;
+  color:var(--muted); transition:color 0.15s, border-color 0.15s;
+}
+.tok-local-load-btn:hover { color:var(--dusk); border-color:var(--dusk); }
 
 .tok-about-author {
   margin-top:6px; padding-top:14px; border-top:1px solid rgba(255,255,255,0.08);
