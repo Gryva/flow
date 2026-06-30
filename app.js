@@ -491,7 +491,7 @@ if (els.refreshDirs) {
       if (!card) return;
       card.classList.remove('refreshing');
       void card.offsetWidth;
-      card.style.animationDelay = (i * 25) + 'ms';
+      card.style.animationDelay = (i * 120) + 'ms';
       card.classList.add('refreshing');
       card.addEventListener('animationend', () => {
         card.classList.remove('refreshing');
