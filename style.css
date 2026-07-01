@@ -298,6 +298,16 @@ html.tok-bg-paused .tok-dir-flow-arrows-track {
   100% { opacity: 0; }
 }
 
+/* All 3 cards pulse yellow when the active playlist is swapped */
+.tok-dir-playlist-changed { animation: tok-dir-replaced-pulse 1.3s cubic-bezier(0.34, 1.56, 0.64, 1) var(--tok-pc-delay, 0ms); z-index: 1; }
+.tok-dir-playlist-changed::after {
+  content: 'Playlist changed';
+  position: absolute; top: -10px; right: 10px;
+  background: #FFC857; color: #2A1A0E; font-size: 10px; font-weight: 800;
+  padding: 3px 8px; border-radius: 999px; letter-spacing: 0.02em;
+  animation: tok-dir-replaced-badge 1.3s ease var(--tok-pc-delay, 0ms) forwards;
+}
+
 /* ---------- transport ---------- */
 .tok-transport {
   display:flex; align-items:center; justify-content:center; gap:16px;
