@@ -517,6 +517,15 @@ function renderDirs(){
   updateDirCards();
 }
 
+function pulsePlaylistChanged(){
+  els.dirs.querySelectorAll('.tok-dir').forEach((card, i) => {
+    card.style.setProperty('--tok-pc-delay', (i * 80) + 'ms');
+    card.classList.remove('tok-dir-playlist-changed');
+    void card.offsetWidth;
+    card.classList.add('tok-dir-playlist-changed');
+  });
+}
+
 function playNext(idx){
   if (!currentCandidates) return;
   currentCandidates.flow = { idx, t: tracks[idx] };
@@ -646,12 +655,7 @@ function switchPlaylist(id){
     if (window.TokEngine) window.TokEngine.ensureEntriesForTracks(tracks);
     renderQueue();
     renderDirs();
-    els.dirs.querySelectorAll('.tok-dir').forEach((card, i) => {
-      card.style.setProperty('--tok-pc-delay', (i * 80) + 'ms');
-      card.classList.remove('tok-dir-playlist-changed');
-      void card.offsetWidth;
-      card.classList.add('tok-dir-playlist-changed');
-    });
+    pulsePlaylistChanged();
     if (isOffline) els.status.textContent = t('offlineMode');
     fetchPlaylistInfo(YT_API_KEY, id).then(info => {
       playlistInfo = info;
@@ -801,6 +805,7 @@ if (els.localFileInput) {
     renderPlaylistInfo();
     renderQueue();
     renderDirs();
+    pulsePlaylistChanged();
     loadCurrentTrack(false);
     if ('mediaSession' in navigator) {
       navigator.mediaSession.setActionHandler('play', () => getLocalAudio().play().catch(() => {}));
