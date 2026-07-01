@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Flow">
-<link rel="stylesheet" href="style.css?v=122">
+<link rel="stylesheet" href="style.css?v=123">
 </head>
 <body style="margin:0; background:#000000; height:100%;">
 
@@ -87,6 +87,15 @@
     </div>
 
     <div class="tok-dirs-wrap">
+    <div class="tok-dirs-topbar">
+      <span class="tok-dirs-label">Directions</span>
+      <button class="tok-refresh-dirs" id="tokRefreshDirs" aria-label="New suggestions" data-i18n-aria="refreshSuggestions">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+        </svg>
+      </button>
+    </div>
     <div class="tok-dirs" id="tokDirs">
       <button class="tok-dir" data-dir="up">
         <div class="tok-dir-flow-arrows diag-up" aria-hidden="true"></div>
@@ -133,12 +142,6 @@
       </button>
     </div>
     <div class="tok-dirs-actions">
-      <button class="tok-refresh-dirs" id="tokRefreshDirs" aria-label="New suggestions" data-i18n-aria="refreshSuggestions">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
-          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-        </svg>
-      </button>
       <button class="tok-refresh-dirs" id="tokQueueToggle" aria-label="Open queue" data-i18n-aria="openQueue">☰</button>
     </div>
     </div>
@@ -265,9 +268,9 @@
   </div>
 </div>
 
-<script src="engine.js?v=122"></script>
-<script type="module" src="app.js?v=122"></script>
-<script type="module" src="js/dir-arrows.js?v=122"></script>
+<script src="engine.js?v=123"></script>
+<script type="module" src="app.js?v=123"></script>
+<script type="module" src="js/dir-arrows.js?v=123"></script>
   <audio id="tokLocalPlayer" style="display:none" preload="auto"></audio>
 </body>
 </html>

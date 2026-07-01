@@ -518,11 +518,13 @@ function renderDirs(){
 }
 
 function pulsePlaylistChanged(){
-  els.dirs.querySelectorAll('.tok-dir').forEach((card, i) => {
-    card.style.setProperty('--tok-pc-delay', (i * 80) + 'ms');
-    card.classList.remove('tok-dir-playlist-changed');
-    void card.offsetWidth;
-    card.classList.add('tok-dir-playlist-changed');
+  els.dirs.classList.remove('tok-dirs-playlist-changed');
+  void els.dirs.offsetWidth;
+  els.dirs.classList.add('tok-dirs-playlist-changed');
+  els.dirs.addEventListener('animationend', function handler(e){
+    if (e.animationName !== 'tok-dirs-playlist-pulse') return;
+    els.dirs.classList.remove('tok-dirs-playlist-changed');
+    els.dirs.removeEventListener('animationend', handler);
   });
 }
 
@@ -550,6 +552,11 @@ function playNext(idx){
     flowCard.classList.remove('tok-dir-replaced');
     void flowCard.offsetWidth;
     flowCard.classList.add('tok-dir-replaced');
+    flowCard.addEventListener('animationend', function handler(e){
+      if (e.animationName !== 'tok-dir-replaced-pulse') return;
+      flowCard.classList.remove('tok-dir-replaced');
+      flowCard.removeEventListener('animationend', handler);
+    });
   }
   if (navigator.vibrate) navigator.vibrate(14);
 }

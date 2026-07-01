@@ -201,8 +201,10 @@ html, body { height:100%; margin:0; }
 
 .tok-dir.refreshing { animation: tok-dir-refresh 0.3s ease both; }
 
-.tok-dirs-wrap { display:flex; flex-direction:column; align-items:center; gap:8px; width:100%; max-width:420px; margin-top:10px; }
-.tok-dirs { display:flex; flex-direction:column; gap:10px; width:100%; }
+.tok-dirs-wrap { display:flex; flex-direction:column; align-items:center; gap:8px; width:100%; max-width:420px; margin-top:10px; position: relative; }
+.tok-dirs-topbar { display:flex; align-items:center; justify-content:space-between; width:100%; }
+.tok-dirs-label { font-size:10px; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; opacity:0.6; -webkit-user-select:none; user-select:none; }
+.tok-dirs { display:flex; flex-direction:column; gap:10px; width:100%; position:relative; border-radius:20px; }
 .tok-refresh-dirs {
   border:none; cursor:pointer; background:transparent;
   color:var(--muted); padding:7px; border-radius:50%;
@@ -297,15 +299,21 @@ html.tok-bg-paused .tok-dir-flow-arrows-track {
   100% { opacity: 0; }
 }
 
-/* All 3 cards pulse yellow when the active playlist is swapped */
-.tok-dir-playlist-changed { animation: tok-dir-replaced-pulse 1.3s cubic-bezier(0.34, 1.56, 0.64, 1) var(--tok-pc-delay, 0ms); z-index: 1; }
-.tok-dir-playlist-changed::after {
+/* Yellow glow border around all 3 direction cards when the playlist is swapped */
+.tok-dirs.tok-dirs-playlist-changed { animation: tok-dirs-playlist-pulse 1.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+@keyframes tok-dirs-playlist-pulse {
+  0%   { box-shadow: 0 0 0 0px transparent; }
+  18%  { box-shadow: 0 0 0 3px #FFC857, 0 0 30px rgba(255,200,87,0.45); }
+  55%  { box-shadow: 0 0 0 2px #FFC857, 0 0 18px rgba(255,200,87,0.25); }
+  100% { box-shadow: 0 0 0 0px transparent; }
+}
+.tok-dirs.tok-dirs-playlist-changed::before {
   content: 'Playlist changed';
-  position: absolute; top: 6px; right: 10px;
+  position: absolute; top: 6px; right: 8px;
   background: #FFC857; color: #2A1A0E; font-size: 10px; font-weight: 800;
   padding: 3px 8px; border-radius: 999px; letter-spacing: 0.02em;
-  z-index: 2;
-  animation: tok-dir-replaced-badge 1.3s ease var(--tok-pc-delay, 0ms) forwards;
+  z-index: 5; pointer-events: none;
+  animation: tok-dir-replaced-badge 1.5s ease forwards;
 }
 
 /* ---------- transport ---------- */
