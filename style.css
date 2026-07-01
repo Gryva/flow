@@ -34,11 +34,11 @@ html, body { height:100%; margin:0; }
 .tok-head-actions { display:flex; align-items:center; gap:8px; }
 .tok-yt-link {
   display:flex; align-items:center; justify-content:center;
-  width:34px; height:34px; border-radius:50%; border:none;
-  background: var(--dusk); color:var(--ink); text-decoration:none; font-size:13px; cursor:pointer;
-  font-family:inherit; opacity:0.55; transition: opacity 0.2s, background 0.2s;
+  width:34px; height:34px; border-radius:50%; border:1.5px solid var(--dusk);
+  background: transparent; color:var(--dusk); text-decoration:none; font-size:13px; cursor:pointer;
+  font-family:inherit; opacity:0.55; transition: opacity 0.2s, background 0.2s, border-color 0.2s;
 }
-.tok-yt-link.active { opacity:1; background:var(--gold); color:var(--bg); }
+.tok-yt-link.active { opacity:1; background:var(--dusk); color:var(--ink); }
 .tok-yt-link svg { width:16px; height:16px; }
 
 .tok-color-wrap { position:relative; }
