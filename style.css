@@ -380,8 +380,8 @@ html.tok-bg-paused .tok-dir-flow-arrows-track {
 .tok-order-wrap { display:flex; align-items:center; gap:8px; flex-shrink:0; }
 .tok-order-label { font-size:10.5px; color:var(--muted); opacity:0.7; text-transform:lowercase; white-space:nowrap; }
 .tok-order-btn {
-  border:none; cursor:pointer; display:flex; align-items:center; justify-content:center;
-  width:32px; height:32px; border-radius:50%; background:var(--dusk); color:var(--ink); flex-shrink:0;
+  border:1.5px solid var(--dusk); cursor:pointer; display:flex; align-items:center; justify-content:center;
+  width:32px; height:32px; border-radius:50%; background:transparent; color:var(--dusk); flex-shrink:0;
 }
 .tok-order-btn:active { transform:scale(0.92); }
 .tok-order-btn svg { width:16px; height:16px; }
