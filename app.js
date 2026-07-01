@@ -59,9 +59,6 @@ const els = {
   playlistBackdrop: document.getElementById('tokPlaylistBackdrop'),
   playlistInput: document.getElementById('tokPlaylistInput'),
   playlistError: document.getElementById('tokPlaylistError'),
-  playlistCancel: document.getElementById('tokPlaylistCancel'),
-  playlistSave: document.getElementById('tokPlaylistSave'),
-  localLoadBtn: document.getElementById('tokLocalLoadBtn'),
   localFileInput: document.getElementById('tokLocalFileInput'),
   orderToggle: document.getElementById('tokOrderToggle'),
   orderIcon: document.getElementById('tokOrderIcon'),
@@ -720,13 +717,6 @@ function openPlaylistModal(){
 function closePlaylistModal(){
   els.playlistBackdrop.classList.remove('open');
 }
-function savePlaylist(){
-  const input = els.playlistInput.value.trim();
-  if (!input) { closePlaylistModal(); return; }
-  const id = extractPlaylistId(input);
-  if (!id) { els.playlistError.textContent = t('playlistIdInvalid'); return; }
-  switchPlaylist(id);
-}
 
 attachLongPress(els.playlistInfo, '.tok-playlist-info', (_, pos) => {
   const saved = listPlaylists();
@@ -764,17 +754,28 @@ els.settingsBtn.addEventListener('click', (e) => {
     }
   ]);
 });
-els.playlistCancel.addEventListener('click', closePlaylistModal);
 els.playlistBackdrop.addEventListener('click', (e) => {
   if (e.target === els.playlistBackdrop) closePlaylistModal();
 });
-els.playlistSave.addEventListener('click', savePlaylist);
+let _playlistTimer = null;
+els.playlistInput.addEventListener('input', () => {
+  clearTimeout(_playlistTimer);
+  els.playlistError.textContent = '';
+  const val = els.playlistInput.value.trim();
+  if (!val) return;
+  const id = extractPlaylistId(val);
+  if (!id) return;
+  _playlistTimer = setTimeout(() => switchPlaylist(id), 400);
+});
 els.playlistInput.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') savePlaylist();
+  if (e.key !== 'Enter') return;
+  clearTimeout(_playlistTimer);
+  const id = extractPlaylistId(els.playlistInput.value.trim());
+  if (!id) { els.playlistError.textContent = t('playlistIdInvalid'); return; }
+  switchPlaylist(id);
 });
 
-if (els.localLoadBtn && els.localFileInput) {
-  els.localLoadBtn.addEventListener('click', () => els.localFileInput.click());
+if (els.localFileInput) {
   els.localFileInput.addEventListener('change', async () => {
     const files = Array.from(els.localFileInput.files || []);
     els.localFileInput.value = '';
