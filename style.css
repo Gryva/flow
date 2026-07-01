@@ -207,7 +207,7 @@ html, body { height:100%; margin:0; }
 .tok-dirs { display:flex; flex-direction:column; gap:10px; width:100%; position:relative; border-radius:20px; }
 .tok-refresh-dirs {
   border:none; cursor:pointer; background:transparent;
-  color:var(--muted); padding:7px; border-radius:50%;
+  color:var(--dusk); padding:7px; border-radius:50%;
   display:flex; align-items:center; justify-content:center;
   transition: color 0.15s, background 0.15s;
 }

@@ -170,13 +170,19 @@
     const db = getDatabase();
     const currentTrack = tracks[currentIndex];
     const song = findSongForTrack(currentTrack, db);
-    const recentIds = new Set((history || []).slice(-3).map(t => t.id).concat([currentTrack.id]));
-    const recentIdxs = new Set(
-      tracks.map((t, idx) => idx).filter(idx => recentIds.has(tracks[idx].id))
-    );
-    recentIdxs.add(currentIndex);
 
-    const used = new Set(recentIdxs);
+    // Exclude ALL played tracks from suggestions (not just the last 3)
+    const playedIds = new Set((history || []).map(t => t.id));
+    playedIds.add(currentTrack.id);
+    const playedIdxs = new Set(
+      tracks.map((t, idx) => idx).filter(idx => playedIds.has(tracks[idx].id))
+    );
+
+    // Once every track has been heard, reset so all can be suggested again
+    const hasUnplayed = tracks.some((t, idx) => !playedIdxs.has(idx));
+    const baseExclude = hasUnplayed ? playedIdxs : new Set([currentIndex]);
+
+    const used = new Set(baseExclude);
 
     let fireIdx = song ? firstAvailable(song.suggestions.speed_up, db, tracks, used) : -1;
     if (fireIdx !== -1) used.add(fireIdx);
@@ -186,10 +192,16 @@
 
     let waveIdx;
     if (mode === 'sequential') {
-      waveIdx = (currentIndex + 1) % tracks.length;
+      // Walk forward from currentIndex+1, skipping already-played or already-picked tracks
+      let next = (currentIndex + 1) % tracks.length;
+      for (let i = 0; i < tracks.length; i++) {
+        if (!used.has(next)) break;
+        next = (next + 1) % tracks.length;
+      }
+      waveIdx = next;
     } else if (mode === 'curated') {
       waveIdx = song ? firstAvailable(song.suggestions.stay, db, tracks, used) : -1;
-      if (waveIdx === -1) waveIdx = (currentIndex + 1) % tracks.length;
+      if (waveIdx === -1) waveIdx = randomIdxExcluding(tracks, used);
     } else {
       // pure random: pick a fully random song from the whole database,
       // then map it back to a track in the current playlist if possible.
