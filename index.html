@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Flow">
-<link rel="stylesheet" href="style.css?v=124">
+<link rel="stylesheet" href="style.css?v=125">
 </head>
 <body style="margin:0; background:#000000; height:100%;">
 
@@ -88,7 +88,12 @@
 
     <div class="tok-dirs-wrap">
     <div class="tok-dirs-topbar">
-      <span class="tok-dirs-label">Directions</span>
+      <div class="tok-order-wrap">
+        <button class="tok-order-btn" id="tokOrderToggle" aria-label="Playback order" data-i18n-aria="playOrder">
+          <svg id="tokOrderIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg>
+        </button>
+        <div class="tok-order-label" id="tokOrderLabel"></div>
+      </div>
       <button class="tok-refresh-dirs" id="tokRefreshDirs" aria-label="New suggestions" data-i18n-aria="refreshSuggestions">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
@@ -155,10 +160,6 @@
     <div class="tok-sheet-header">
       <div class="tok-sheet-title" data-i18n="queueTitle">Queue</div>
       <div class="tok-order-wrap">
-        <div class="tok-order-label" id="tokOrderLabel"></div>
-        <button class="tok-order-btn" id="tokOrderToggle" aria-label="Playback order" data-i18n-aria="playOrder">
-          <svg id="tokOrderIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg>
-        </button>
         <button class="tok-order-btn tok-db-toggle" id="tokDbToggle" aria-label="Database" data-i18n-aria="database">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
@@ -268,9 +269,9 @@
   </div>
 </div>
 
-<script src="engine.js?v=124"></script>
-<script type="module" src="app.js?v=124"></script>
-<script type="module" src="js/dir-arrows.js?v=124"></script>
+<script src="engine.js?v=125"></script>
+<script type="module" src="app.js?v=125"></script>
+<script type="module" src="js/dir-arrows.js?v=125"></script>
   <audio id="tokLocalPlayer" style="display:none" preload="auto"></audio>
 </body>
 </html>
