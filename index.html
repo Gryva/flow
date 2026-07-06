@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Flow">
-<link rel="stylesheet" href="style.css?v=128">
+<link rel="stylesheet" href="style.css?v=129">
 </head>
 <body style="margin:0; background:#000000; height:100%;">
 
@@ -200,11 +200,18 @@
       <input class="tok-modal-input tok-playlist-input-new" id="tokPlaylistInput" type="url" inputmode="url" placeholder="https://music.youtube.com/playlist?list=...">
       <div class="tok-modal-error" id="tokPlaylistError"></div>
       <div class="tok-playlist-divider"><span data-i18n="orLoadLocal">or</span></div>
-      <label class="tok-modal-btn tok-local-load-btn" for="tokLocalFileInput">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        <span data-i18n="loadFromDevice">Load from device</span>
-      </label>
+      <div class="tok-local-load-row">
+        <label class="tok-modal-btn tok-local-load-btn" for="tokLocalFileInput">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <span data-i18n="loadFromDevice">Files</span>
+        </label>
+        <label class="tok-modal-btn tok-local-load-btn" for="tokLocalFolderInput">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          <span data-i18n="loadFromFolder">Folder</span>
+        </label>
+      </div>
       <input type="file" id="tokLocalFileInput" accept="audio/*" multiple style="display:none">
+      <input type="file" id="tokLocalFolderInput" webkitdirectory style="display:none">
     </div>
   </div>
 
@@ -269,9 +276,14 @@
   </div>
 </div>
 
-<script src="engine.js?v=128"></script>
-<script type="module" src="app.js?v=128"></script>
-<script type="module" src="js/dir-arrows.js?v=128"></script>
+<script src="engine.js?v=129"></script>
+<script type="module" src="app.js?v=129"></script>
+<script type="module" src="js/dir-arrows.js?v=129"></script>
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+</script>
   <audio id="tokLocalPlayer" style="display:none" preload="auto"></audio>
 </body>
 </html>

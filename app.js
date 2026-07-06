@@ -60,6 +60,7 @@ const els = {
   playlistInput: document.getElementById('tokPlaylistInput'),
   playlistError: document.getElementById('tokPlaylistError'),
   localFileInput: document.getElementById('tokLocalFileInput'),
+  localFolderInput: document.getElementById('tokLocalFolderInput'),
   orderToggle: document.getElementById('tokOrderToggle'),
   orderIcon: document.getElementById('tokOrderIcon'),
   orderLabel: document.getElementById('tokOrderLabel'),
@@ -792,34 +793,51 @@ els.playlistInput.addEventListener('keydown', (e) => {
   switchPlaylist(id);
 });
 
+async function loadLocalFiles(files, label) {
+  const audioFiles = files.filter(f => f.type.startsWith('audio/') || /\.(mp3|flac|ogg|m4a|aac|wav|opus|weba)$/i.test(f.name));
+  audioFiles.sort((a, b) => a.name.localeCompare(b.name));
+  if (!audioFiles.length) return;
+  revokeAll();
+  const loadedTracks = await filesToTracks(audioFiles);
+  if (!loadedTracks.length) return;
+  const playlistId = 'local:' + Date.now();
+  PLAYLIST_ID = playlistId;
+  localStorage.setItem('tok_playlist_id', playlistId);
+  tracks = loadedTracks;
+  currentIndex = 0;
+  history.length = 0;
+  playlistInfo = { title: label || 'Local files', author: '', count: tracks.length };
+  closePlaylistModal();
+  closeQueue();
+  renderPlaylistInfo();
+  renderQueue();
+  renderDirs();
+  pulsePlaylistChanged();
+  loadCurrentTrack(false);
+  if ('mediaSession' in navigator) {
+    navigator.mediaSession.setActionHandler('play', () => getLocalAudio().play().catch(() => {}));
+    navigator.mediaSession.setActionHandler('pause', () => getLocalAudio().pause());
+    navigator.mediaSession.setActionHandler('previoustrack', () => els.prevBtn.click());
+    navigator.mediaSession.setActionHandler('nexttrack', () => els.nextBtn.click());
+  }
+}
+
 if (els.localFileInput) {
   els.localFileInput.addEventListener('change', async () => {
     const files = Array.from(els.localFileInput.files || []);
     els.localFileInput.value = '';
-    if (!files.length) return;
-    revokeAll();
-    const loadedTracks = await filesToTracks(files);
-    if (!loadedTracks.length) return;
-    const playlistId = 'local:' + Date.now();
-    PLAYLIST_ID = playlistId;
-    localStorage.setItem('tok_playlist_id', playlistId);
-    tracks = loadedTracks;
-    currentIndex = 0;
-    history.length = 0;
-    playlistInfo = { title: 'Local files', author: '', count: tracks.length };
-    closePlaylistModal();
-    closeQueue();
-    renderPlaylistInfo();
-    renderQueue();
-    renderDirs();
-    pulsePlaylistChanged();
-    loadCurrentTrack(false);
-    if ('mediaSession' in navigator) {
-      navigator.mediaSession.setActionHandler('play', () => getLocalAudio().play().catch(() => {}));
-      navigator.mediaSession.setActionHandler('pause', () => getLocalAudio().pause());
-      navigator.mediaSession.setActionHandler('previoustrack', () => els.prevBtn.click());
-      navigator.mediaSession.setActionHandler('nexttrack', () => els.nextBtn.click());
-    }
+    await loadLocalFiles(files, 'Local files');
+  });
+}
+
+if (els.localFolderInput) {
+  els.localFolderInput.addEventListener('change', async () => {
+    const files = Array.from(els.localFolderInput.files || []);
+    const folderName = files.length && files[0].webkitRelativePath
+      ? files[0].webkitRelativePath.split('/')[0]
+      : 'Local folder';
+    els.localFolderInput.value = '';
+    await loadLocalFiles(files, folderName);
   });
 }
 

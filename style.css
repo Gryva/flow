@@ -487,9 +487,12 @@ html.tok-bg-paused .tok-dir-flow-arrows-track {
 .tok-playlist-divider::before,.tok-playlist-divider::after {
   content:''; flex:1; height:1px; background:rgba(255,255,255,0.1);
 }
+.tok-local-load-row {
+  display:flex; gap:8px; width:100%;
+}
 .tok-local-load-btn {
   display:flex; align-items:center; justify-content:center; gap:8px;
-  width:100%; border:1px dashed rgba(255,255,255,0.2);
+  flex:1; border:1px dashed rgba(255,255,255,0.2);
   padding:11px 18px; margin-bottom:4px;
   color:var(--muted); transition:color 0.15s, border-color 0.15s;
   cursor:pointer;
