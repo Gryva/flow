@@ -1,11 +1,11 @@
-const CACHE = 'flow-v129';
+const CACHE = 'flow-v130';
 const ASSETS = [
   './',
   'index.html',
-  'style.css?v=129',
-  'engine.js?v=129',
-  'app.js?v=129',
-  'js/dir-arrows.js?v=129',
+  'style.css?v=130',
+  'engine.js?v=130',
+  'app.js?v=130',
+  'js/dir-arrows.js?v=130',
   'js/youtube-api.js',
   'js/long-press.js',
   'js/track-cache.js',

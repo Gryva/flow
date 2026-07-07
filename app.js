@@ -27,6 +27,7 @@ let currentCandidates = null;
 let history = [];
 let playlistInfo = null;
 let songModalTrack = null;
+let localBackupTracks = [];
 
 let storedOrder = localStorage.getItem('tok_order') || 'sequential';
 if (storedOrder === 'shuffle') storedOrder = 'curated';
@@ -529,6 +530,44 @@ function pulsePlaylistChanged(){
   });
 }
 
+function pulseOfflineSwitch(){
+  els.dirs.classList.remove('tok-dirs-offline-switch');
+  void els.dirs.offsetWidth;
+  els.dirs.classList.add('tok-dirs-offline-switch');
+  els.dirs.addEventListener('animationend', function handler(e){
+    if (e.animationName !== 'tok-dirs-playlist-pulse') return;
+    els.dirs.classList.remove('tok-dirs-offline-switch');
+    els.dirs.removeEventListener('animationend', handler);
+  });
+}
+
+function switchToOfflinePlaylist(){
+  if (!localBackupTracks.length || isLocalPlaylistId(PLAYLIST_ID)) return;
+  if (player && typeof player.pauseVideo === 'function') player.pauseVideo();
+  const offlineId = 'local:offline-' + Date.now();
+  PLAYLIST_ID = offlineId;
+  localStorage.setItem('tok_playlist_id', offlineId);
+  tracks = localBackupTracks;
+  currentIndex = 0;
+  history.length = 0;
+  playlistInfo = { title: 'Offline playlist', author: '', count: tracks.length };
+  renderPlaylistInfo();
+  renderQueue();
+  renderDirs();
+  pulseOfflineSwitch();
+  loadCurrentTrack(false);
+  if ('mediaSession' in navigator) {
+    navigator.mediaSession.setActionHandler('play', () => getLocalAudio().play().catch(() => {}));
+    navigator.mediaSession.setActionHandler('pause', () => getLocalAudio().pause());
+    navigator.mediaSession.setActionHandler('previoustrack', () => els.prevBtn.click());
+    navigator.mediaSession.setActionHandler('nexttrack', () => els.nextBtn.click());
+  }
+}
+
+window.addEventListener('offline', () => {
+  if (localBackupTracks.length && !isLocalPlaylistId(PLAYLIST_ID)) switchToOfflinePlaylist();
+});
+
 function playNext(idx){
   if (!currentCandidates) return;
   currentCandidates.flow = { idx, t: tracks[idx] };
@@ -800,6 +839,7 @@ async function loadLocalFiles(files, label) {
   revokeAll();
   const loadedTracks = await filesToTracks(audioFiles);
   if (!loadedTracks.length) return;
+  localBackupTracks = loadedTracks;
   const playlistId = 'local:' + Date.now();
   PLAYLIST_ID = playlistId;
   localStorage.setItem('tok_playlist_id', playlistId);
@@ -980,13 +1020,19 @@ function onPlayerReady(){
   else player.pauseVideo();
 }
 
+function onPlayerError(){
+  if (!navigator.onLine && localBackupTracks.length && !isLocalPlaylistId(PLAYLIST_ID)) {
+    switchToOfflinePlaylist();
+  }
+}
+
 window.onYouTubeIframeAPIReady = function(){
   const initialVideoId = (tracks[currentIndex] && !tracks[currentIndex].isLocal) ? tracks[currentIndex].id : '';
   player = new YT.Player('ytPlayer', {
     height: '1', width: '1',
     videoId: initialVideoId,
     playerVars: { autoplay: 0, controls: 0, disablekb: 1, modestbranding: 1, rel: 0, playsinline: 1 },
-    events: { onReady: onPlayerReady, onStateChange: onPlayerStateChange }
+    events: { onReady: onPlayerReady, onStateChange: onPlayerStateChange, onError: onPlayerError }
   });
   if ('mediaSession' in navigator) {
     navigator.mediaSession.setActionHandler('play', () => player.playVideo());

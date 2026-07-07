@@ -300,21 +300,24 @@ html.tok-bg-paused .tok-dir-flow-arrows-track {
 }
 
 /* Yellow glow border around all 3 direction cards when the playlist is swapped */
-.tok-dirs.tok-dirs-playlist-changed { animation: tok-dirs-playlist-pulse 1.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+.tok-dirs.tok-dirs-playlist-changed,
+.tok-dirs.tok-dirs-offline-switch { animation: tok-dirs-playlist-pulse 1.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
 @keyframes tok-dirs-playlist-pulse {
   0%   { box-shadow: 0 0 0 0px transparent; }
   18%  { box-shadow: 0 0 0 3px #FFC857, 0 0 30px rgba(255,200,87,0.45); }
   55%  { box-shadow: 0 0 0 2px #FFC857, 0 0 18px rgba(255,200,87,0.25); }
   100% { box-shadow: 0 0 0 0px transparent; }
 }
-.tok-dirs.tok-dirs-playlist-changed::before {
-  content: 'Playlist changed';
+.tok-dirs.tok-dirs-playlist-changed::before,
+.tok-dirs.tok-dirs-offline-switch::before {
   position: absolute; top: 6px; right: 8px;
   background: #FFC857; color: #2A1A0E; font-size: 10px; font-weight: 800;
   padding: 3px 8px; border-radius: 999px; letter-spacing: 0.02em;
   z-index: 5; pointer-events: none;
   animation: tok-dir-replaced-badge 1.5s ease forwards;
 }
+.tok-dirs.tok-dirs-playlist-changed::before { content: 'Playlist changed'; }
+.tok-dirs.tok-dirs-offline-switch::before   { content: 'Offline playlist'; }
 
 /* ---------- transport ---------- */
 .tok-transport {
