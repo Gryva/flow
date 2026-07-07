@@ -1193,9 +1193,60 @@ let closeThemeColorMenu = () => {};
     if (e.target === toggleBtn || menu.contains(e.target)) return;
     menu.classList.remove('open');
   });
+  // ---- hue cycle ----
+  const cycleBtn = document.getElementById('tokColorCycleBtn');
+  const cycleIcon = document.getElementById('tokColorCycleIcon');
+  const cycleSpeedInput = document.getElementById('tokColorCycleSpeed');
+  const CYCLE_SPEED_KEY = 'tok_theme_cycle_speed';
+  const PLAY_PATH = '<polygon points="5 3 19 12 5 21 5 3"/>';
+  const PAUSE_PATH = '<rect x="5" y="4" width="4" height="16"/><rect x="15" y="4" width="4" height="16"/>';
+  let cycleActive = false, cycleRafId = null, lastCycleTs = null;
+
+  const savedCycleSpeed = localStorage.getItem(CYCLE_SPEED_KEY);
+  if (cycleSpeedInput && savedCycleSpeed) cycleSpeedInput.value = savedCycleSpeed;
+
+  function cycleDegsPerSec() {
+    const v = cycleSpeedInput ? Number(cycleSpeedInput.value) : 20;
+    // quadratic ramp: 0.5°/s at v=1 → 120°/s at v=100
+    return Math.pow(v / 100, 2) * 119.5 + 0.5;
+  }
+
+  function stopCycle() {
+    cycleActive = false; lastCycleTs = null;
+    if (cycleRafId) { cancelAnimationFrame(cycleRafId); cycleRafId = null; }
+    if (cycleIcon) cycleIcon.innerHTML = PLAY_PATH;
+    if (cycleBtn) cycleBtn.classList.remove('active');
+  }
+
+  function startCycle() {
+    cycleActive = true;
+    if (cycleIcon) cycleIcon.innerHTML = PAUSE_PATH;
+    if (cycleBtn) cycleBtn.classList.add('active');
+    lastCycleTs = null;
+    function tick(now) {
+      if (!cycleActive) return;
+      if (lastCycleTs !== null) {
+        const dt = Math.min((now - lastCycleTs) / 1000, 0.1);
+        hsv.h = (hsv.h + cycleDegsPerSec() * dt + 360) % 360;
+        syncCustomPanelToHue();
+        const hex = hsvToHex(hsv.h, hsv.s, hsv.v);
+        apply(hex);
+        localStorage.setItem(STORAGE_KEY, hex);
+      }
+      lastCycleTs = now;
+      cycleRafId = requestAnimationFrame(tick);
+    }
+    cycleRafId = requestAnimationFrame(tick);
+  }
+
+  if (cycleBtn) cycleBtn.addEventListener('click', () => cycleActive ? stopCycle() : startCycle());
+  if (cycleSpeedInput) cycleSpeedInput.addEventListener('input', () => localStorage.setItem(CYCLE_SPEED_KEY, cycleSpeedInput.value));
+  // ---- end hue cycle ----
+
   swatchesWrap.addEventListener('click', (e) => {
     const sw = e.target.closest('.tok-color-swatch[data-color]');
     if (!sw) return;
+    stopCycle();
     hsv = hexToHsv(sw.dataset.color);
     syncCustomPanelToHue();
     apply(sw.dataset.color);

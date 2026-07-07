@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Flow">
-<link rel="stylesheet" href="style.css?v=130">
+<link rel="stylesheet" href="style.css?v=131">
 </head>
 <body style="margin:0; background:#000000; height:100%;">
 
@@ -56,6 +56,15 @@
             </div>
             <input class="tok-color-hue" id="tokColorHue" type="range" min="0" max="360" value="9">
             <input class="tok-color-hex" id="tokColorHexInput" type="text" placeholder="#E2401D" maxlength="7" inputmode="text" autocapitalize="characters">
+          </div>
+          <div class="tok-color-cycle-row">
+            <button class="tok-color-cycle-btn" id="tokColorCycleBtn" aria-label="Cycle hue">
+              <svg id="tokColorCycleIcon" viewBox="0 0 24 24" fill="currentColor" stroke="none" width="12" height="12">
+                <polygon points="5 3 19 12 5 21 5 3"/>
+              </svg>
+            </button>
+            <span class="tok-color-cycle-label">Cycle hue</span>
+            <input class="tok-color-cycle-speed" id="tokColorCycleSpeed" type="range" min="1" max="100" value="20">
           </div>
           <button class="tok-color-reset" id="tokColorReset" data-i18n="resetDefault">Reset to default</button>
         </div>
@@ -276,9 +285,9 @@
   </div>
 </div>
 
-<script src="engine.js?v=130"></script>
-<script type="module" src="app.js?v=130"></script>
-<script type="module" src="js/dir-arrows.js?v=130"></script>
+<script src="engine.js?v=131"></script>
+<script type="module" src="app.js?v=131"></script>
+<script type="module" src="js/dir-arrows.js?v=131"></script>
 <script>
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').catch(() => {});

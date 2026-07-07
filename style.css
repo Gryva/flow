@@ -100,6 +100,32 @@ html, body { height:100%; margin:0; }
   border-radius:999px; padding:8px 14px; background:transparent; color:var(--muted);
 }
 .tok-color-reset:active { transform:scale(0.96); }
+.tok-color-cycle-row {
+  display:flex; align-items:center; gap:8px;
+}
+.tok-color-cycle-btn {
+  flex-shrink:0; width:26px; height:26px; border-radius:50%;
+  border:1px solid rgba(255,255,255,0.2); background:transparent;
+  color:var(--muted); cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+.tok-color-cycle-btn.active { background:var(--dusk); border-color:var(--dusk); color:var(--ink); }
+.tok-color-cycle-label { font-size:12px; color:var(--muted); white-space:nowrap; flex-shrink:0; }
+.tok-color-cycle-speed {
+  -webkit-appearance:none; appearance:none;
+  flex:1; height:4px; border-radius:999px;
+  background:rgba(255,255,255,0.12); outline:none; cursor:pointer;
+}
+.tok-color-cycle-speed::-webkit-slider-thumb {
+  -webkit-appearance:none; width:14px; height:14px; border-radius:50%;
+  background:var(--dusk); cursor:pointer; transition:transform 0.1s;
+}
+.tok-color-cycle-speed::-webkit-slider-thumb:active { transform:scale(1.25); }
+.tok-color-cycle-speed::-moz-range-thumb {
+  width:14px; height:14px; border-radius:50%; border:none;
+  background:var(--dusk); cursor:pointer;
+}
 #tokFullscreenToggle.active { opacity:1; background:var(--dusk); color:var(--ink); }
 
 .tok-main {
