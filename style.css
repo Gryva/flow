@@ -277,7 +277,7 @@ html, body { height:100%; margin:0; }
   display:flex; align-items:center;
   transform:translateY(-50%) translateX(-50%);
   animation: tok-flow-arrows-move var(--tok-arrow-speed, 7s) linear infinite;
-  opacity:var(--tok-arrow-opacity, 0.22);
+  opacity:var(--tok-arrow-opacity, 0.28);
 }
 .tok-dir.chosen .tok-dir-flow-arrows-track {
   will-change: transform, opacity;
@@ -297,7 +297,7 @@ html, body { height:100%; margin:0; }
 }
 .tok-dir.chosen .tok-dir-flow-arrows .tok-dir-flow-arrows-track {
   animation-play-state: running;
-  opacity: var(--tok-arrow-opacity, 0.22);
+  opacity: var(--tok-arrow-opacity, 0.28);
 }
 html.tok-bg-paused .tok-dir-flow-arrows-track {
   animation-play-state: paused !important;
